@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type MasteraccountsCryptoAccounts {
+  id           String                                     @map("_id") @db.ObjectId
+  account_id   String
+  balance      Int
+  currency     String
+  name         String
+  transactions MasteraccountsCryptoAccountsTransactions[]
+}
+
+type MasteraccountsCryptoAccountsTransactions {
+  id                  String   @map("_id") @db.ObjectId
+  amount              Int
+  currency            String
+  date                DateTime @db.Date
+  description         String
+  destination_account String
+  source_account      String
+  type                String
+}
+
+type MasteraccountsFiatAccounts {
+  id           String                                   @map("_id") @db.ObjectId
+  account_id   String
+  balance      Int
+  currency     String
+  name         String
+  transactions MasteraccountsFiatAccountsTransactions[]
+}
+
+type MasteraccountsFiatAccountsTransactions {
+  id                  String   @map("_id") @db.ObjectId
+  amount              Int
+  currency            String
+  date                DateTime @db.Date
+  description         String
+  destination_account String
+  source_account      String
+  type                String
+}
+
+model masteraccounts {
+  id              String                         @id @default(auto()) @map("_id") @db.ObjectId
+  v               Int                            @map("__v")
+  account_id      String                         @unique(map: "account_id_1")
+  createdAt       DateTime                       @db.Date
+  crypto_accounts MasteraccountsCryptoAccounts[]
+  email           String
+  fiat_accounts   MasteraccountsFiatAccounts[]
+  name            String
+  password        String
+  surname         String
+  token           String
+  token_expire    DateTime                       @db.Date
+  /// Could not determine type: the field only had null or empty values in the sample set.
+  transactions    Json?
+  updatedAt       DateTime                       @db.Date
+
+  @@unique([fiat_accounts.account_id], map: "fiat_accounts.account_id_1")
+  @@unique([crypto_accounts.account_id], map: "crypto_accounts.account_id_1")
+}
