@@ -1,15 +1,17 @@
-import * as trpc from '@trpc/server';
-import * as trpcNext from '@trpc/server/adapters/next';
+import type { inferAsyncReturnType } from '@trpc/server';
+import type { CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { PrismaClient } from '@prisma/client';
 
-// This is the context that will be available in all our resolvers.
+/**
+ * Creates context for an incoming request
+ * @link https://trpc.io/docs/context
+ */
+export async function createContext(opts: CreateNextContextOptions) {
+  const prisma = new PrismaClient();
 
-const prisma = new PrismaClient();
-
-export const createContext = () => {
   return {
-    prisma,
+    prisma
   };
 }
 
-export type Context = ReturnType<typeof createContext>;
+export type Context = inferAsyncReturnType<typeof createContext>;

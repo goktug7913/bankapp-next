@@ -4,17 +4,71 @@ import { procedure, router } from '../trpc';
 // This is the main application router.
 // Subrouters reside in their own files in this folder.
 export const appRouter = router({
-    hello: procedure
+
+    login: procedure
         .input(
             z.object({
-                text: z.string(),
+                account_id: z.string(),
+                password: z.string(),
             }),
         )
-        .query(({ input }) => {
-            return {
-                greeting: `hello ${input.text}`,
-            };
+        .mutation( async ({ input, ctx }) => {
+            const { account_id, password } = input;
+            const { prisma } = ctx;
+            console.log("account_id: " + account_id);
+
+            const user = await prisma.masteraccounts.findUnique({
+                where: {
+                    account_id: account_id,
+                },
+            });
+
+            if (user) {
+                if (user.password === password) {
+                    return user;
+                } else {
+                    return "Wrong password";
+                }
+            } else {
+                return "User not found";
+            }
         }),
+
+    register: procedure
+        .input(z.object({
+            account_id: z.string(),
+            name: z.string(),
+            surname: z.string(),
+            email: z.string(),
+            password: z.string(),
+        })).query( ({ input, ctx }) => {}),
+
+    getAccount: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    updateAccount: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    createFiatAccount: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    createCryptoAccount: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    deleteMasterAccount: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    deleteFiatAccount: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    deleteCryptoAccount: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    faucet: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    getIdFromToken: procedure
+        .input(z.object({})).query( ({ input, ctx }) => {}),
 });
 
 // export type definition of API
