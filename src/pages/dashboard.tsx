@@ -45,7 +45,7 @@ export default function Dashboard() {
     const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
 
     return(
-        <Box sx={{mt:3, mr:3, ml:3}}>
+        <Box sx={{mt:3, mx:3}}>
             <Box sx={{mt: 3}}>
                 <Typography variant="h5">Welcome back {UserContext.name}.</Typography>
                 <Typography variant="h6" sx={{mt: 2}}>Total Asset Value: 1952.22$</Typography>
@@ -64,6 +64,7 @@ export default function Dashboard() {
                                 return (<AccountEntry key={index} account={faccount} type={"fiat"} onAccountChange={() => {}}/>)
                             })}
                         </List>
+
                     </Stack>
                 </Box>
 
@@ -81,16 +82,18 @@ export default function Dashboard() {
                                 return (<AccountEntry key={index} account={caccount} type={"crypto"} onAccountChange={() => {}}/>)
                             })}
                         </List>
+
                     </Stack>
                 </Box>
             </Stack>
 
             <Divider sx={{mt: 3}}/>
 
-            <Box>
-                <Typography variant="h6" sx={{mt: 3}}>Stocks Portfolio</Typography>
-                <Typography variant="body2" sx={{mt: 3}}>Nothing here yet.</Typography>
-                <Button variant="outlined" color="success" sx={{my: 3}}>Buy Stocks</Button>
+            <Box sx={{}}>
+                <Stack direction="row" gap={1} style={{justifyContent:"space-between"}}>
+                    <Typography variant="h6" sx={{}}>Stocks Portfolio</Typography>
+                    <Button variant="outlined" color="success" sx={{}}>Buy Stocks</Button>
+                </Stack>
 
                 <Accordion sx={{maxWidth:largeScreen ? 320 : 320, minWidth:largeScreen ? 320 : 320}}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
@@ -123,7 +126,7 @@ export default function Dashboard() {
 
             <Divider sx={{mt: 3}}/>
 
-            <Box>
+            <Box sx={{}}>
                 <Typography variant="h6" sx={{mt: 3}}>Credit Cards</Typography>
                 <Typography variant="body2" sx={{mt: 3}}>Nothing here yet.</Typography>
             </Box>

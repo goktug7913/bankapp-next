@@ -1,7 +1,7 @@
 import {
     Accordion,
     AccordionDetails,
-    AccordionSummary, Button, Container,
+    AccordionSummary, Box, Button, Container,
     Pagination,
     Stack,
     Typography
@@ -141,18 +141,21 @@ export const AccountEntry = (props:AccountEntryProps) => {
                         }</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
-                        <Container>
+                        <Box sx={{width:"maxWidth"}}>
                             <Pagination count={CalculateTransactionPages()} showFirstButton showLastButton size={"small"} onChange={(event: React.ChangeEvent<unknown>, page: number) => {setPage(page);}}/>
 
-                        {accState.transactions.length ? accState.transactions.slice(page*10-10,page*10).map( // Check if the slice is correct
-                            (transaction: ITransaction) => (
-                                <Stack key={transaction._id} direction="row" gap={2} sx={{m:0.5}}>
-                                    <Typography >{transaction.type +" "+parseDate(transaction.date)}</Typography>
-                                    <Typography color={transaction.amount>0 ? "green" : "red"}>{transaction.amount + " " + transaction.currency}</Typography>
+                            {accState.transactions.length ? accState.transactions.slice(page*10-10,page*10).map( // Check if the slice is correct
+                                (transaction: ITransaction) => (
+                                <Stack key={transaction._id} direction="row" gap={2} sx={{m:0.5, justifyContent:"space-between"}}>
+                                    <Typography >{transaction.type}</Typography>
+                                    <Stack direction={"row"} gap={2}>
+                                        <Typography >{parseDate(transaction.date)}</Typography>
+                                        <Typography color={transaction.amount>0 ? "green" : "red"}>{transaction.amount + " " + transaction.currency}</Typography>
+                                    </Stack>
                                 </Stack>
                             )
                         ) : <Typography>No transactions so far.</Typography>}
-                        </Container>
+                        </Box>
                     </AccordionDetails>
                 </Accordion>
             </AccordionDetails>

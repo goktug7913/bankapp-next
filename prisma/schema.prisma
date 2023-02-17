@@ -47,6 +47,17 @@ type MasteraccountsFiatAccountsTransactions {
   type                String
 }
 
+model masteraccounts_transactions {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  v                Int             @map("__v")
+  createdAt        DateTime        @db.Date
+  date             DateTime        @db.Date
+  type             String
+  updatedAt        DateTime        @db.Date
+  masteraccounts   masteraccounts? @relation(fields: [masteraccountsId], references: [id])
+  masteraccountsId String?         @db.ObjectId
+}
+
 model masteraccounts {
   id              String                         @id @default(auto()) @map("_id") @db.ObjectId
   v               Int                            @map("__v")
@@ -61,9 +72,29 @@ model masteraccounts {
   token           String
   token_expire    DateTime                       @db.Date
   /// Could not determine type: the field only had null or empty values in the sample set.
-  transactions    Json?
+  transactions    masteraccounts_transactions[]
   updatedAt       DateTime                       @db.Date
 
   @@unique([fiat_accounts.account_id], map: "fiat_accounts.account_id_1")
   @@unique([crypto_accounts.account_id], map: "crypto_accounts.account_id_1")
+}
+
+model currencies {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  v         Int      @map("__v")
+  createdAt DateTime @db.Date
+  name      String
+  symbol    String
+  type      String
+  updatedAt DateTime @db.Date
+}
+
+model logs {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  v         Int      @map("__v")
+  createdAt DateTime @db.Date
+  type      String
+  level     String
+  message   String
+  updatedAt DateTime @db.Date
 }

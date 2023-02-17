@@ -32,13 +32,11 @@ function Navbar() {
     // TODO: Styling
     return(
         <AppBar position="static">
-            <Container maxWidth="xl">
-                <Toolbar>
+            <Box>
+                <Toolbar sx={{alignContent:"center"}}>
 
-                    <Box sx={{ flexGrow: 1 }}>
-                        <Link href={"/"}><Image src={logo} alt={"logo"} width={135} height={28} style={{alignSelf: "center"}}/></Link>
-                    </Box>
-
+                    <Link href={"/"} style={{display:"flex"}}><Image src={logo} alt={"logo"} width={145} height={45}/></Link>
+                    <div style={{flexGrow:1}}/>
                     {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/dashboard">Dashboard</Button> : null}
                     {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/settings">Settings</Button> : null}
                     {UserContext.user.account_id ? null : <Button LinkComponent={Link} color="primary" href="/login">Login</Button>}
@@ -46,7 +44,7 @@ function Navbar() {
                     {UserContext.user.account_id&&largeScreen ? <Typography variant="body1" sx={{ml:1}}>{UserContext.user.name + " " + UserContext.user.surname}</Typography> : null}
 
                 </Toolbar>
-            </Container>
+            </Box>
         </AppBar>
 
     );
