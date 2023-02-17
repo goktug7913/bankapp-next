@@ -59,13 +59,16 @@ function Login() {
     }, [Login.isSuccess]);
 
     return(
-        <Container>
+        <Container maxWidth={"sm"}>
             <h1>Please Log In</h1>
+
             <Box component="form" onSubmit={onSubmit} noValidate sx={{ mt: 1 }}>
                 <TextField margin="normal" required fullWidth autoFocus label="Account ID" type="text" onChange={e => setUser({...user, account_id: e.target.value})}/>
                 <TextField margin="normal" required fullWidth label="Password" type="password" onChange={e => setUser({...user, password: e.target.value})}/>
                 <FormControlLabel control={<Checkbox value="remember" color="primary" />} label="Remember me"/>
+
                 <Button type="submit" fullWidth variant="contained" disabled={Login.isLoading} sx={{ mt: 3, mb: 2 }}>{Login.isLoading ? <CircularProgress color="primary" /> : "Submit"}</Button>
+
                 <FormLabel>No account yet? <Link href="/register">Register</Link></FormLabel>
 
                 <Fade in={error !== ""} style={{transitionDuration: "500ms"}}>

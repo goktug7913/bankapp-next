@@ -2,7 +2,7 @@ import React from "react";
 import {useContext} from "react";
 
 import AppBar from '@mui/material/AppBar';
-import {Box, Button, Container, Toolbar, Typography} from "@mui/material";
+import {Box, Button, Toolbar, Typography} from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import {UserCtx} from "@/context/UserState";
@@ -40,7 +40,7 @@ function Navbar() {
                     {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/dashboard">Dashboard</Button> : null}
                     {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/settings">Settings</Button> : null}
                     {UserContext.user.account_id ? null : <Button LinkComponent={Link} color="primary" href="/login">Login</Button>}
-                    {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/logout" onClick={logout}>Logout</Button> : <Button LinkComponent={Link} color="primary" href="/register">Register</Button>}
+                    {UserContext.user.account_id ? <Button LinkComponent={Link} color="error" href="/logout" onClick={logout}>Logout</Button> : <Button LinkComponent={Link} color="primary" href="/register">Register</Button>}
                     {UserContext.user.account_id&&largeScreen ? <Typography variant="body1" sx={{ml:1}}>{UserContext.user.name + " " + UserContext.user.surname}</Typography> : null}
 
                 </Toolbar>

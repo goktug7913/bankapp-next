@@ -65,7 +65,34 @@ export const appRouter = router({
         .input(z.object({})).query( ({ input, ctx }) => {}),
 
     faucet: procedure
-        .input(z.object({})).query( ({ input, ctx }) => {}),
+        .input(z.object({
+            // TODO: add input for amount
+            account_id: z.string(),
+        })).query( async ({input, ctx}) => {
+            const {prisma} = ctx;
+            const {account_id} = input;
+            console.log("account_id: " + account_id);
+
+            const user = await prisma.masteraccounts.findUnique({
+                where: {
+                    account_id: account_id,
+                },
+            });
+
+            if (user) {
+                const balance = user.balance;
+                const newBalance = balance + 100;
+                const updatedUser = await prisma.masteraccounts.update({
+                    where: {
+                        account_id: account_id,
+                    },
+                    data: {
+                        balance: newBalance,
+                    },
+                });
+                return updatedUser;
+            }
+        }),
 
     getIdFromToken: procedure
         .input(z.object({})).query( ({ input, ctx }) => {}),
