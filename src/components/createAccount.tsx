@@ -3,11 +3,8 @@ import Select from "react-select";
 import "./createAccount.css";
 import {getIdFromToken} from "../api/getIdFromToken";
 import {Box, Button, Container, TextField} from "@mui/material";
-import axiosInstance from "../api/AxiosInstance";
 import {UserCtx} from "@/context/UserState";
 import {useContext} from "react";
-import {useNavigate} from "react-router-dom";
-
 const account_types = [
     { value: "fiat", label: "Fiat" },
     { value: "crypto", label: "Crypto" }
@@ -47,8 +44,6 @@ export default function CreateAccount(token: any) {
     const [name, setName] = React.useState("");
 
     const UserContext = useContext(UserCtx);
-    const navigate = useNavigate();
-
     const updateType = (e: any) => {
         setType(e);
         if (e.value === "fiat") {
@@ -77,22 +72,11 @@ export default function CreateAccount(token: any) {
 
 
             if (type.value === "fiat") {
-                axiosInstance.post("/account/fiat", request).then((res) => {
-                    // Redirect to dashboard
-                    navigate("/dashboard")
-                }).catch((err) => {
-                    console.log(err);
-                });
+
             }
             else {
-                axiosInstance.post("/account/crypto", request).then((res) => {
-                    // Redirect to dashboard
-                    navigate("/dashboard")
-                }).catch((err) => {
-                    console.log(err);
-                });
+
             }
-            navigate("/dashboard")
         }).catch((err) => {
             console.log(err);
         });
