@@ -1,7 +1,5 @@
 import React from "react";
-import Select from "react-select";
 import "./createAccount.css";
-import {getIdFromToken} from "../api/getIdFromToken";
 import {Box, Button, Container, TextField} from "@mui/material";
 import {UserCtx} from "@/context/UserState";
 import {useContext} from "react";
@@ -59,27 +57,6 @@ export default function CreateAccount(token: any) {
 
     const onSubmit = (e: any) => {
         e.preventDefault();
-
-        // First, let's get the user id from the token
-        getIdFromToken(UserContext.user.token).then((id: any) => {
-            const request = {
-                master_id: id._id,
-                name: name,
-                currency: currency.value,
-            }
-
-            console.log(request);
-
-
-            if (type.value === "fiat") {
-
-            }
-            else {
-
-            }
-        }).catch((err) => {
-            console.log(err);
-        });
     }
 
     return(

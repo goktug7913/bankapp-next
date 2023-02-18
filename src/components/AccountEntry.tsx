@@ -15,6 +15,7 @@ import Grid2 from "@mui/material/Unstable_Grid2";
 import {UserCtx} from "@/context/UserState";
 import {ICryptoAccount, IFiatAccount, ITransaction} from "@/model/UserModels";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import {trpc} from "@/utils/trpc";
 
 export interface AccountEntryProps {
     account: IFiatAccount | ICryptoAccount;
@@ -30,6 +31,8 @@ export const AccountEntry = (props:AccountEntryProps) => {
     const UserContext = useContext(UserCtx).user;
     const SetUserContext = useContext(UserCtx).setUser;
     const [processing, setProcessing] = useState(false);
+
+    const FaucetRequest = trpc.faucet.useMutation();
 
     useEffect(() => {
         // AxiosInstance.post("/account/", {account_id: UserContext.account_id})
@@ -57,20 +60,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     const handleFaucetRequest = () => {
         // setProcessing(true);
-        // const data = {
-        //     master_id: UserContext.account_id,
-        //     type: props.type,
-        //     account_id: accState._id
-        // }
-        // axiosInstance.post("/account/faucet", data).then((res) => {
-        //     setProcessing(false)
-        //     // We need to update the account balance
-        //     account.balance = res.data.balance;
-        //     onAccountChange(account);
-        //     setAccState(res.data);
-        // }).catch((err) => {
-        //     alert(err);
-        // });
+        trpc
     }
 
     const handleSendRequest = () => {
@@ -123,7 +113,6 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
             <AccordionDetails >
                 <Typography sx={{mx:0.5, mb:1}}>Account Number: {accState.account_id}</Typography>
-
 
                 <Stack direction="row" gap={2} sx={{m:0.5}}>
                     <Button disabled={processing} variant="outlined" color={"primary"} onClick={handleSendRequest}>Send</Button>

@@ -7,94 +7,127 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-type MasteraccountsCryptoAccounts {
-  id           String                                     @map("_id") @db.ObjectId
-  account_id   String
-  balance      Int
-  currency     String
-  name         String
-  transactions MasteraccountsCryptoAccountsTransactions[]
-}
-
-type MasteraccountsCryptoAccountsTransactions {
-  id                  String   @map("_id") @db.ObjectId
-  amount              Int
-  currency            String
-  date                DateTime @db.Date
-  description         String
-  destination_account String
-  source_account      String
-  type                String
-}
-
-type MasteraccountsFiatAccounts {
-  id           String                                   @map("_id") @db.ObjectId
-  account_id   String
-  balance      Int
-  currency     String
-  name         String
-  transactions MasteraccountsFiatAccountsTransactions[]
-}
-
-type MasteraccountsFiatAccountsTransactions {
-  id                  String   @map("_id") @db.ObjectId
-  amount              Int
-  currency            String
-  date                DateTime @db.Date
-  description         String
-  destination_account String
-  source_account      String
-  type                String
-}
-
-model masteraccounts_transactions {
-  id               String          @id @default(auto()) @map("_id") @db.ObjectId
-  v                Int             @map("__v")
-  createdAt        DateTime        @db.Date
-  date             DateTime        @db.Date
-  type             String
-  updatedAt        DateTime        @db.Date
-  masteraccounts   masteraccounts? @relation(fields: [masteraccountsId], references: [id])
-  masteraccountsId String?         @db.ObjectId
-}
-
-model masteraccounts {
-  id              String                         @id @default(auto()) @map("_id") @db.ObjectId
-  v               Int                            @map("__v")
-  account_id      String                         @unique(map: "account_id_1")
-  createdAt       DateTime                       @db.Date
-  crypto_accounts MasteraccountsCryptoAccounts[]
-  email           String
-  fiat_accounts   MasteraccountsFiatAccounts[]
+model MasterAccount {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  account_id      String          @unique
   name            String
-  password        String
   surname         String
-  token           String
-  token_expire    DateTime                       @db.Date
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  transactions    masteraccounts_transactions[]
-  updatedAt       DateTime                       @db.Date
-
-  @@unique([fiat_accounts.account_id], map: "fiat_accounts.account_id_1")
-  @@unique([crypto_accounts.account_id], map: "crypto_accounts.account_id_1")
+  email           String          @unique
+  password        String
+  crypto_accounts CryptoAccount[]
+  fiat_accounts   FiatAccount[]
+  operations      Operation[]
+  token           String?         @unique @default("")
+  token_expire    DateTime?       @db.Date
+  createdAt       DateTime?       @default(now()) @db.Date
+  updatedAt       DateTime?       @updatedAt @db.Date
+  is_active       Boolean?        @default(true)
 }
 
-model currencies {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  v         Int      @map("__v")
-  createdAt DateTime @db.Date
-  name      String
-  symbol    String
-  type      String
-  updatedAt DateTime @db.Date
+model CryptoAccount {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  account_id      String              @unique
+  parent          MasterAccount       @relation(fields: [parent_id], references: [id])
+  parent_id       String              @db.ObjectId
+  balance         Int                 @default(0)
+  currency        String
+  name            String
+  transactions    CryptoTransaction[]
+  FiatTransaction FiatTransaction[]
+  is_active       Boolean             @default(true)
 }
 
-model logs {
+model CryptoTransaction {
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  parent_account      CryptoAccount @relation(fields: [parent_account_id], references: [id])
+  parent_account_id   String        @db.ObjectId
+  amount              Int
+  currency            String
+  date                DateTime      @db.Date
+  description         String        @default("No description")
+  source_account      String
+  destination_account String
+  type                String
+}
+
+model FiatAccount {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  account_id   String
+  parent       MasterAccount     @relation(fields: [parent_id], references: [id])
+  parent_id    String            @db.ObjectId
+  balance      Int
+  currency     String
+  name         String
+  transactions FiatTransaction[]
+  is_active    Boolean           @default(true)
+}
+
+model FiatTransaction {
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  parent_account      CryptoAccount @relation(fields: [parent_account_id], references: [id])
+  parent_account_id   String        @db.ObjectId
+  amount              Int
+  currency            String
+  date                DateTime      @db.Date
+  description         String
+  source_account      String
+  destination_account String
+  type                String
+  FiatAccount         FiatAccount?  @relation(fields: [fiatAccountId], references: [id])
+  fiatAccountId       String?       @db.ObjectId
+}
+
+model Operation {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  type             OperationType @default(UNDEFINED)
+  createdAt        DateTime      @default(now()) @db.Date
+  updatedAt        DateTime      @updatedAt @db.Date
+  masteraccount    MasterAccount @relation(fields: [masteraccount_id], references: [id])
+  masteraccount_id String        @db.ObjectId
+}
+
+enum OperationType {
+  UNDEFINED
+  CREATE_ACCOUNT
+  CREATE_CRYPTO_ACCOUNT
+  CREATE_FIAT_ACCOUNT
+
+  CLOSE_ACCOUNT
+  CLOSE_CRYPTO_ACCOUNT
+  CLOSE_FIAT_ACCOUNT
+
+  ACTIVATE_ACCOUNT
+  ACTIVATE_CRYPTO_ACCOUNT
+  ACTIVATE_FIAT_ACCOUNT
+
+  DEACTIVATE_ACCOUNT
+  DEACTIVATE_CRYPTO_ACCOUNT
+  DEACTIVATE_FIAT_ACCOUNT
+}
+
+model Currency {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  ticker String
+  type   String
+}
+
+enum CurrencyType {
+  FIAT
+  CRYPTO
+}
+
+model internal_logs {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   v         Int      @map("__v")
-  createdAt DateTime @db.Date
-  type      String
-  level     String
-  message   String
-  updatedAt DateTime @db.Date
+  type      LogType  @default(INFO)
+  message   String   @default("")
+  createdAt DateTime @default(now()) @db.Date
+  updatedAt DateTime @updatedAt @db.Date
+}
+
+enum LogType {
+  ERROR
+  WARNING
+  INFO
 }

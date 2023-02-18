@@ -1,7 +1,9 @@
 //import useToken from "../hooks/useToken";
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import {Alert, Box, Button, Checkbox, Container, FormControlLabel, TextField} from "@mui/material";
 import {useRouter} from "next/router";
+import {trpc} from "@/utils/trpc";
+import {UserCtx} from "@/context/UserState";
 
 interface IRegister {
     account_id: string;
@@ -11,15 +13,16 @@ interface IRegister {
     password: string;
 }
 
-export const Register = () => {
+export default function Register()
+{
     const [account, setAccount] = useState<IRegister>({} as IRegister);
     const [password2, setPassword2] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const user = useContext(UserCtx);
     const router = useRouter();
-    //const [saveToken] = useToken();
-
+    const registerCall = trpc.register.useMutation();
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (account.password !== password2) {
@@ -28,10 +31,11 @@ export const Register = () => {
         else {
             try {
                 setLoading(true);
-                //const response = await axiosInstance.post("/register", account);
-                //console.log(response.data);
-                //saveToken(response.data.token);
-                await router.replace("/dashboard");
+                registerCall.mutateAsync(account).then((res) => {
+                    setLoading(false);
+                    user.setUser(res);
+                    router.replace("/dashboard");
+                });
             } catch (e) {
                 setLoading(false)
                 setError("An error occurred");
@@ -40,7 +44,7 @@ export const Register = () => {
     };
 
     return (
-        <Container>
+        <Container maxWidth={"sm"}>
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                 <h1>Register</h1>
                 <TextField margin="normal" required fullWidth autoFocus

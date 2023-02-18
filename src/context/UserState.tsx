@@ -17,7 +17,7 @@ export const UserCtx = createContext<ContextProps>({
         crypto_accounts: [],
         transactions: [],
     },
-    setUser: () => {},
+    setUser: (user: UserAccountInterface | {}) => {}
 });
 
 // For Child Components
@@ -36,7 +36,7 @@ export const UserProvider: React.FC<Props> = ({children}) => {
         crypto_accounts: [],
         transactions: [],
     });
-
+    // WE ONLY USE SESSION STORAGE, AS WE DO NOT WANT TO STORE ANYTHING ON THE CLIENT SIDE FOR SECURITY REASONS
     // Check if the user is already logged in, and if so, validate the token
     useEffect(() => {
         if (!(sessionStorage.getItem('user'))) {
