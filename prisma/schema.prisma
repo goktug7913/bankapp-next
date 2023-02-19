@@ -13,7 +13,7 @@ model MasterAccount {
   name            String
   surname         String
   email           String          @unique
-  password        String
+  password        String?
   crypto_accounts CryptoAccount[]
   fiat_accounts   FiatAccount[]
   operations      Operation[]

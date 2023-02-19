@@ -1,5 +1,5 @@
 //import useToken from "../hooks/useToken";
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {Alert, Box, Button, Checkbox, Container, FormControlLabel, TextField} from "@mui/material";
 import {useRouter} from "next/router";
 import {trpc} from "@/utils/trpc";
@@ -17,29 +17,52 @@ export default function Register()
 {
     const [account, setAccount] = useState<IRegister>({} as IRegister);
     const [password2, setPassword2] = useState("");
+    const [tos, setTos] = useState(false);
+
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
     const user = useContext(UserCtx);
     const router = useRouter();
     const registerCall = trpc.register.useMutation();
+
+
+    useEffect(() => {
+        if (registerCall.error) {
+            setError(registerCall.error.message);
+        }
+    }, [registerCall.error]);
+
+    useEffect(() => {
+        if(registerCall.isSuccess && !registerCall.isLoading) {
+            console.log("Success");
+            setLoading(false);
+
+            console.log(registerCall.data);
+            user.setUser(registerCall.data.user as any);
+
+            router.replace("/dashboard").then(() => {
+                window.location.reload();
+            });
+        }
+    }, [registerCall.isSuccess, registerCall.isLoading , registerCall.data]);
+
+    useEffect(() => {
+        if (user.user.account_id !== "") {
+            router.push("/dashboard");
+        }
+    }, [user.user.account_id]);
+
+    useEffect(() => {
+        setLoading(registerCall.isLoading);
+    }, [registerCall.isLoading]);
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (account.password !== password2) {
-            setError("Passwords do not match");
-        }
+        if (account.password !== password2) { setError("Passwords do not match") }
+        else if (!tos) { setError("You must agree to the terms of service") }
         else {
-            try {
-                setLoading(true);
-                registerCall.mutateAsync(account).then((res) => {
-                    setLoading(false);
-                    user.setUser(res);
-                    router.replace("/dashboard");
-                });
-            } catch (e) {
-                setLoading(false)
-                setError("An error occurred");
-            }
+            registerCall.mutate(account);
         }
     };
 
@@ -83,7 +106,8 @@ export default function Register()
                            onChange={(e) => setPassword2(e.target.value)}
                            placeholder="Confirm password"
                 />
-                <FormControlLabel control={<Checkbox value="tos" color="primary" />} label="I agree to the Terms of Service"/>
+                <FormControlLabel control={<Checkbox value={tos} color="primary" onChange={ (e) => setTos(e.target.checked)} />} label="I agree to the Terms of Service"/>
+
                 {error && <Alert severity="error">{error}</Alert>}
                 <Button disabled={loading} type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>Register</Button>
             </Box>

@@ -21,7 +21,7 @@ function Login() {
     const router = useRouter();
     const UserContext = useContext(UserCtx);
     // If the user is already logged in, let's redirect them to the dashboard
-    if (UserContext.user != {} || UserContext.user != null) {
+    if (!UserContext.user) {
         //router.push("/dashboard");
     }
 
@@ -44,19 +44,19 @@ function Login() {
             setError(Login.error.message);
         }
 
-        if (Login.data) {
-            UserContext.setUser(Login?.data);
+        if (Login.data?.user !== undefined && Login.data?.user !== null) {
+            UserContext.setUser(Login.data.user as any);
             console.log(Login.data);
         }
     }, [Login.error, Login.data]);
 
     useEffect(() => {
-        if(Login.isSuccess) {
+        if(Login.isSuccess && !Login.isLoading && Login.data?.user !== undefined) {
             console.log("Success");
             setLoading(false);
             router.push("/dashboard");
         }
-    }, [Login.isSuccess]);
+    }, [Login.isSuccess, Login.isLoading , Login.data]);
 
     return(
         <Container maxWidth={"sm"}>

@@ -3,6 +3,12 @@ import {procedure, router} from '../trpc';
 import * as process from "process";
 import {OperationType} from "@prisma/client";
 
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import {PrismaClient} from "@prisma/client";
+
+export const prisma = new PrismaClient();
+
 // This is the main application router.
 // Subrouters reside in their own files in this folder.
 export const appRouter = router({
@@ -16,7 +22,6 @@ export const appRouter = router({
         )
         .mutation( async ({ input, ctx }) => {
             const { account_id, password } = input;
-            const { prisma, bcrypt } = ctx;
             console.log("account_id: " + account_id);
 
             const user = await prisma.masterAccount.findUnique({
@@ -25,14 +30,18 @@ export const appRouter = router({
                 },
             });
 
-            if (user) {
-                if (user.password === bcrypt.hashSync(password, process.env.PWD_SALT)) {
-                    return user;
-                } else {
-                    return "Wrong password";
-                }
+            if (!user) {
+                console.log("user not found");
+                return {user: null}; // TODO: We need to return error messages
+            }
+
+            if (bcrypt.compareSync(password, user.password)) {
+                return {user: user};
             } else {
-                return "User not found";
+                console.log("passwords don't match");
+                console.log("Received password: " + bcrypt.hashSync(password, 10));
+                console.log("user.password: " + user.password);
+                return {user: null}; // TODO: We need to return error messages
             }
         }),
 
@@ -44,12 +53,12 @@ export const appRouter = router({
             email: z.string().email(),
             password: z.string().min(8).max(64),
         })).mutation( async ({input, ctx}) => {
-            const {prisma, bcrypt, jwt} = ctx;
-            const {account_id} = input;
-            console.log("new registration account_id: " + account_id);
-            const hashedPassword = bcrypt.hashSync(input.password, process.env.PWD_SALT);
+            //const {prisma, bcrypt, jwt} = ctx;
+            console.log("new registration: " + JSON.stringify(input));
+            const hashedPassword = bcrypt.hashSync(input.password, 10);
             const token = jwt.sign({account_id: input.account_id}, process.env.JWT_SECRET as string, {expiresIn: '1h'});
-            prisma.masterAccount.create({
+
+            let data = await prisma.masterAccount.create({
                 data: {
                     account_id: input.account_id,
                     name: input.name,
@@ -57,16 +66,15 @@ export const appRouter = router({
                     email: input.email,
                     password: hashedPassword,
                     token: token,
+                    operations: {
+                        create: {
+                            type: OperationType.CREATE_ACCOUNT,
+                        }
+                    }
                 },
-            }).then(async (user) => {
-                await prisma.operation.create({
-                    data: {
-                        type: OperationType.CREATE_ACCOUNT,
-                        master_account_id: user.id,
-                    } as any
-                });
-                return user;
-            }).catch((err) => { console.log(err) });
+            });
+            delete data.password;
+            return {user: data};
         }),
 
     getAccount: procedure
