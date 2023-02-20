@@ -46,12 +46,15 @@ export default function Dashboard() {
 
     return(
         <Box sx={{mt:3, mx:3}}>
+
             <Box sx={{mt: 3}}>
                 <Typography variant="h5">Welcome back {UserContext.name}.</Typography>
                 <Typography variant="h6" sx={{mt: 2}}>Total Asset Value: 1952.22$</Typography>
             </Box>
-            <Divider sx={{mt: 3}}/>
-            <Stack direction={largeScreen?"row":"column"} gap={3} sx={{mt: 3}}>
+
+            <Divider sx={{my: 3}}/>
+
+            <Stack direction={largeScreen?"row":"column"} gap={3}>
                 <Box sx={{}}>
                     <Stack direction="column" gap={1} sx={{}}>
                         <Stack direction="row" gap={1} style={{justifyContent:"space-between"}}>
@@ -64,7 +67,6 @@ export default function Dashboard() {
                                 return (<AccountEntry key={index} account={faccount} type={"fiat"} onAccountChange={() => {}}/>)
                             })}
                         </List>
-
                     </Stack>
                 </Box>
 
@@ -82,15 +84,14 @@ export default function Dashboard() {
                                 return (<AccountEntry key={index} account={caccount} type={"crypto"} onAccountChange={() => {}}/>)
                             })}
                         </List>
-
                     </Stack>
                 </Box>
             </Stack>
 
-            <Divider sx={{mt: 3}}/>
+            <Divider sx={{my: 3}}/>
 
             <Box sx={{}}>
-                <Stack direction="row" gap={1} style={{justifyContent:"space-between"}}>
+                <Stack direction="row" gap={1} style={{justifyContent:""}}>
                     <Typography variant="h6" sx={{}}>Stocks Portfolio</Typography>
                     <Button variant="outlined" color="success" sx={{}}>Buy Stocks</Button>
                 </Stack>
@@ -98,12 +99,10 @@ export default function Dashboard() {
                 <Accordion sx={{maxWidth:largeScreen ? 320 : 320, minWidth:largeScreen ? 320 : 320}}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                         <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%"}}>
-                            <Typography>
-                                <Grid2 container spacing={1}>
-                                    <Grid2><InventoryIcon sx={{fontSize: 24}} /></Grid2>
-                                    <Grid2>Sample stock SMPL</Grid2>
-                                </Grid2>
-                            </Typography>
+                            <Grid2 container spacing={1}>
+                                <Grid2><InventoryIcon sx={{fontSize: 24}} /></Grid2>
+                                <Grid2>Sample stock SMPL</Grid2>
+                            </Grid2>
 
                             <Typography>120$</Typography>
                         </div>
@@ -124,7 +123,7 @@ export default function Dashboard() {
 
             </Box>
 
-            <Divider sx={{mt: 3}}/>
+            <Divider sx={{my: 3}}/>
 
             <Box sx={{}}>
                 <Typography variant="h6" sx={{mt: 3}}>Credit Cards</Typography>

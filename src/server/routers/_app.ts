@@ -58,7 +58,7 @@ export const appRouter = router({
             const hashedPassword = bcrypt.hashSync(input.password, 10);
             const token = jwt.sign({account_id: input.account_id}, process.env.JWT_SECRET as string, {expiresIn: '1h'});
 
-            let data = await prisma.masterAccount.create({
+            let newUser = await prisma.masterAccount.create({
                 data: {
                     account_id: input.account_id,
                     name: input.name,
@@ -73,8 +73,7 @@ export const appRouter = router({
                     }
                 },
             });
-            delete data.password;
-            return {user: data};
+            return {user: {...newUser, password: undefined}};
         }),
 
     getAccount: procedure
@@ -84,10 +83,34 @@ export const appRouter = router({
         .input(z.object({})).query( ({ input, ctx }) => {}),
 
     createFiatAccount: procedure
-        .input(z.object({})).query( ({ input, ctx }) => {}),
+        .input(z.object({
+            account_id: z.string(),
+            currency_ticker: z.string(),
+            name: z.string(),
+        })).mutation( async ({ input, ctx }) => {
+            const {prisma} = ctx;
+            const {account_id} = input;
+            console.log("account_id: " + account_id);
+            const user = await prisma.masterAccount.findUnique({
+                where: { account_id: account_id },
+                select: { id : true }
+            });
+
+            let newAccount = await prisma.fiatAccount.create({
+                data: {
+                    account_id: Math.random().toString(),
+                    parent_id: user.id, // TODO: Temporary solution until we set middleware
+                    name: input.name,
+                    currency: input.currency_ticker,
+                    balance: 0,
+                    is_active: true,
+                },
+            });
+            return {account: newAccount};
+        }),
 
     createCryptoAccount: procedure
-        .input(z.object({})).query( ({ input, ctx }) => {}),
+        .input(z.object({})).mutation( ({ input, ctx }) => {}),
 
     deleteMasterAccount: procedure
         .input(z.object({})).query( ({ input, ctx }) => {}),
@@ -140,6 +163,13 @@ export const appRouter = router({
 
     getIdFromToken: procedure
         .input(z.object({})).query( ({ input, ctx }) => {}),
+
+    getCurrencies: procedure
+        .query( async ({ ctx }) => {
+            const {prisma} = ctx;
+            return await prisma.currency.findMany();
+        }),
+
 });
 
 // export type definition of API
