@@ -36,8 +36,9 @@ export default function Dashboard() {
     // This is to make sure that the user context is up-to-date
     const UserData = trpc.getMasterAccount.useQuery();
     useEffect(() => {
-        if (UserData.data !== {}) {
-            SetUserContext(UserData.data); // TODO: Fix types
+        if (UserData.data) {
+            console.log(UserData.data);
+            //SetUserContext(UserData.data); // TODO: Fix this
         }
     }, [UserData.data]);
 

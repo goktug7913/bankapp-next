@@ -60,7 +60,6 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     const handleFaucetRequest = () => {
         // setProcessing(true);
-        trpc
     }
 
     const handleSendRequest = () => {

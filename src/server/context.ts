@@ -14,6 +14,7 @@ export async function createContext(opts: CreateNextContextOptions) {
   if (!req.headers.authorization) {
     // We don't have an authorization header, so we can't verify the user
     // User might be trying to login or register, we should handle this better
+    console.log('No authorization header');
     return {
       prisma,
       bcrypt,
@@ -22,7 +23,7 @@ export async function createContext(opts: CreateNextContextOptions) {
   }
   const user = jwt.verify(req.headers.authorization as string,
     process.env.JWT_SECRET as string);
-
+     console.log('user: ' + JSON.stringify(user));
   return {
     prisma,
     bcrypt,

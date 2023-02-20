@@ -45,7 +45,7 @@ export const UserProvider: React.FC<Props> = ({children}) => {
             return;
         }
 
-        setUser(JSON.parse(sessionStorage.getItem('user') as string) as UserAccountInterface);
+        //setUser(JSON.parse(sessionStorage.getItem('user') as string) as UserAccountInterface);
     }, []);
 
     // Update the session storage when the user changes

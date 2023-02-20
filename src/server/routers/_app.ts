@@ -119,7 +119,7 @@ export const appRouter = router({
                     fiat_accounts: true
                 }
             });
-
+            console.log("user: " + JSON.stringify(user));
             return {user: user};
         }),
 
@@ -155,8 +155,32 @@ export const appRouter = router({
         }),
 
     createCryptoAccount: procedure
-        .input(z.object({})).mutation( ({ input, ctx }) => {}),
+        .input(z.object({
+            account_id: z.string(),
+            currency_ticker: z.string(),
+            name: z.string(),
+        })).mutation( async ({ input, ctx }) => {
+            const {prisma} = ctx;
+            const {account_id} = input;
+            console.log("account_id: " + account_id);
+            const user = await prisma.masterAccount.findUnique({
+                where: { account_id: account_id },
+                select: { id : true }
+            });
+            if (!user) { return {account: null} }
 
+            let newAccount = await prisma.cryptoAccount.create({
+                data: {
+                    account_id: Math.random().toString(),
+                    parent_id: user.id, // TODO: Temporary solution until we set middleware
+                    name: input.name,
+                    currency: input.currency_ticker,
+                    balance: 0,
+                    is_active: true,
+                },
+            });
+            return {account: newAccount};
+        }),
     deleteMasterAccount: procedure
         .input(z.object({})).query( ({ input, ctx }) => {}),
 
@@ -179,16 +203,7 @@ export const appRouter = router({
 
             switch (input.type) {
                 case "fiat":
-                    await prisma.fiatAccount.update({
-                        where: {
-                            account_id: input.subaccount_id,
-                        },
-                        data: {
-                            balance: {
-                                increment: input.amount,
-                            }
-                        }
-                    });
+                    // TODO: Implement fiat faucet
                     break;
 
                 case "crypto":

@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import {useRouter} from "next/router";
 import {UserCtx} from "@/context/UserState";
-import {trpc} from "@/utils/trpc";
+import {trpc, setAuthToken} from "@/utils/trpc";
 import dynamic from "next/dynamic";
 
 function Login() {
@@ -46,6 +46,8 @@ function Login() {
 
         if (Login.data?.user !== undefined && Login.data?.user !== null) {
             UserContext.setUser(Login.data.user as any);
+            setAuthToken(UserContext.user.token);
+            console.log("User token set from login page");
             console.log(Login.data);
         }
     }, [Login.error, Login.data]);

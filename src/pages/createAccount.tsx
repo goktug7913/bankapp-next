@@ -56,7 +56,7 @@ export default function CreateAccount() {
         e.preventDefault();
         const data = {
             account_id: UserContext.user.account_id,
-            currency_ticker: currency,
+            currency_ticker: currency as unknown as string, // TODO: fix type
             name: accountName,
         }
         console.log(data);
