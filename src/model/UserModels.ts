@@ -14,7 +14,7 @@ export interface UserAccountInterface {
 }
 
 export interface IFiatAccount {
-    _id: string;
+    id: string;
     account_id: string;
     name: string;
     currency: string;
@@ -32,7 +32,7 @@ export interface ICryptoAccount {
 }
 
 export interface ITransaction {
-    _id: string;
+    id: string;
     type: string;
     amount: number;
     currency: string;

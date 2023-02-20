@@ -1,8 +1,7 @@
 import {
     Accordion,
     AccordionDetails,
-    AccordionSummary, Box, Button, Container,
-    Pagination,
+    AccordionSummary, Box, Button, Pagination,
     Stack,
     Typography
 } from "@mui/material";
@@ -34,6 +33,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     const FaucetRequest = trpc.faucet.useMutation();
 
+    console.log(account);
     useEffect(() => {
         // AxiosInstance.post("/account/", {account_id: UserContext.account_id})
         //     .then((res) => {
@@ -78,7 +78,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     const CalculateTransactionPages = () => {
         // 10 transactions per page
-        return Math.ceil(accState.transactions.length / 10);
+        return Math.ceil(accState.transactions?.length / 10);
     }
 
     const FillPages = () => {
@@ -86,7 +86,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
         let items = [];
         // 10 transactions per page
         for (let i = 1; i <= pages; i++) {
-            items.push(accState.transactions.slice((i-1)*10, i*10));
+            items.push(accState.transactions?.slice((i-1)*10, i*10));
         }
     }
 
@@ -124,18 +124,18 @@ export const AccountEntry = (props:AccountEntryProps) => {
                 <Accordion sx={{mt:2}}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                         <Typography sx={{mx:1}}>{
-                            props.account.transactions.length === 0 ?
+                            props.account.transactions?.length === 0 ?
                                 "No transactions" :
-                                props.account.transactions.length === 1 ? "1 transaction" : accState.transactions.length + " transactions"
+                                props.account.transactions?.length === 1 ? "1 transaction" : accState.transactions?.length + " transactions"
                         }</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Box sx={{width:"maxWidth"}}>
                             <Pagination count={CalculateTransactionPages()} showFirstButton showLastButton size={"small"} onChange={(event: React.ChangeEvent<unknown>, page: number) => {setPage(page);}}/>
 
-                            {accState.transactions.length ? accState.transactions.slice(page*10-10,page*10).map( // Check if the slice is correct
+                            {accState.transactions?.length ? accState.transactions?.slice(page*10-10,page*10).map( // Check if the slice is correct
                                 (transaction: ITransaction) => (
-                                <Stack key={transaction._id} direction="row" gap={2} sx={{m:0.5, justifyContent:"space-between"}}>
+                                <Stack key={transaction.id} direction="row" gap={2} sx={{m:0.5, justifyContent:"space-between"}}>
                                     <Typography >{transaction.type}</Typography>
                                     <Stack direction={"row"} gap={2}>
                                         <Typography >{parseDate(transaction.date)}</Typography>

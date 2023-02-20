@@ -9,11 +9,25 @@ import jwt from 'jsonwebtoken';
  */
 export async function createContext(opts: CreateNextContextOptions) {
   const prisma = new PrismaClient();
+  const { req, res } = opts;
+
+  if (!req.headers.authorization) {
+    // We don't have an authorization header, so we can't verify the user
+    // User might be trying to login or register, we should handle this better
+    return {
+      prisma,
+      bcrypt,
+      jwt,
+    };
+  }
+  const user = jwt.verify(req.headers.authorization as string,
+    process.env.JWT_SECRET as string);
 
   return {
     prisma,
     bcrypt,
     jwt,
+    user,
   };
 }
 

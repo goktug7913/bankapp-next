@@ -15,6 +15,14 @@ function getBaseUrl() {
     return `http://localhost:${process.env.PORT ?? 3000}`;
 }
 
+/**
+ * This is the auth token that is used for all requests.
+ */
+let token: string | null = null;
+export function setAuthToken(newToken: string | null) {
+    token = newToken;
+}
+
 export const trpc = createTRPCNext<AppRouter>({
     config({ ctx }) {
 
@@ -28,7 +36,9 @@ export const trpc = createTRPCNext<AppRouter>({
                     url: `${getBaseUrl()}/api/trpc`,
                 }),
             ],
-
+            headers: {
+                authorization: token,
+            }
             /**
              * @link https://tanstack.com/query/v4/docs/reference/QueryClient
              **/

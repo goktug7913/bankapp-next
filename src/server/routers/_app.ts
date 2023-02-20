@@ -28,6 +28,11 @@ export const appRouter = router({
                 where: {
                     account_id: account_id,
                 },
+                include: {
+                    fiat_accounts: true,
+                    crypto_accounts: true,
+                    operations: true,
+                }
             });
 
             if (!user) {
@@ -35,7 +40,7 @@ export const appRouter = router({
                 return {user: null}; // TODO: We need to return error messages
             }
 
-            if (bcrypt.compareSync(password, user.password)) {
+            if (bcrypt.compareSync(password, user.password as string)) {
                 return {user: user};
             } else {
                 console.log("passwords don't match");
@@ -76,8 +81,47 @@ export const appRouter = router({
             return {user: {...newUser, password: undefined}};
         }),
 
-    getAccount: procedure
-        .input(z.object({})).query( ({ input, ctx }) => {}),
+    getSubAccounts: procedure
+        .input(z.object({}))
+        .query( async ({ input, ctx }) => {
+            if (!ctx.user) { return {} }
+            const {prisma} = ctx;
+            const account_id = ctx.user as string;
+            console.log("account_id: " + account_id);
+
+            const accounts = await prisma.masterAccount.findUnique({
+                where: {id: account_id},
+                select: {
+                    crypto_accounts: true,
+                    fiat_accounts: true
+                }
+            });
+
+            return {accounts: accounts};
+        }),
+
+    getMasterAccount: procedure
+        .query( async ({ input, ctx }) => {
+            if (!ctx.user) { return {} }
+            const {prisma} = ctx;
+            const account_id = ctx.user as string;
+            console.log("account_id: " + account_id);
+
+            const user = await prisma.masterAccount.findUnique({
+                where: {account_id: account_id},
+                select: {
+                    id: true,
+                    account_id: true,
+                    name: true,
+                    surname: true,
+                    email: true,
+                    crypto_accounts: true,
+                    fiat_accounts: true
+                }
+            });
+
+            return {user: user};
+        }),
 
     updateAccount: procedure
         .input(z.object({})).query( ({ input, ctx }) => {}),
@@ -95,6 +139,7 @@ export const appRouter = router({
                 where: { account_id: account_id },
                 select: { id : true }
             });
+            if (!user) { return {account: null} }
 
             let newAccount = await prisma.fiatAccount.create({
                 data: {

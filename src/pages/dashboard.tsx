@@ -20,6 +20,7 @@ import Grid2 from "@mui/material/Unstable_Grid2";
 import InventoryIcon from '@mui/icons-material/Inventory';
 
 import {useRouter} from "next/router";
+import {trpc} from "@/utils/trpc";
 
 export default function Dashboard() {
     const UserContext = useContext(UserCtx).user;
@@ -28,19 +29,17 @@ export default function Dashboard() {
 
     function CreateNewAccount() {
         // Redirect to creation page
-        router.push("/createAccount");
+        router.push("/createAccount").then();
     }
 
     // Let's update the user context on page load
     // This is to make sure that the user context is up-to-date
-    // useEffect(() => {
-    //     AxiosInstance.post("/account/", {account_id: UserContext.account_id})
-    //         .then((res) => {
-    //             res?.data ? SetUserContext(prevState => res?.data) : SetUserContext(prevState => UserContext); console.log("Error: Could not update account information!");
-    //         }).catch((err) => {
-    //         console.log(err);
-    //     });
-    // }, [UserContext.account_id, SetUserContext]);
+    const UserData = trpc.getMasterAccount.useQuery();
+    useEffect(() => {
+        if (UserData.data !== {}) {
+            SetUserContext(UserData.data); // TODO: Fix types
+        }
+    }, [UserData.data]);
 
     const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
 

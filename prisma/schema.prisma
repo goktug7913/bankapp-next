@@ -41,7 +41,7 @@ model CryptoTransaction {
   id                  String        @id @default(auto()) @map("_id") @db.ObjectId
   parent_account      CryptoAccount @relation(fields: [parent_account_id], references: [id])
   parent_account_id   String        @db.ObjectId
-  amount              Int
+  amount              Float
   currency            String
   date                DateTime      @db.Date
   description         String        @default("No description")
@@ -66,7 +66,7 @@ model FiatTransaction {
   id                  String        @id @default(auto()) @map("_id") @db.ObjectId
   parent_account      CryptoAccount @relation(fields: [parent_account_id], references: [id])
   parent_account_id   String        @db.ObjectId
-  amount              Int
+  amount              Float
   currency            String
   date                DateTime      @db.Date
   description         String

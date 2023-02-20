@@ -1,5 +1,6 @@
 import React, {createContext, useEffect} from "react";
 import {UserAccountInterface} from "@/model/UserModels";
+import {setAuthToken} from "@/utils/trpc";
 
 interface ContextProps {
     user: UserAccountInterface;
@@ -53,6 +54,12 @@ export const UserProvider: React.FC<Props> = ({children}) => {
             sessionStorage.setItem('user', JSON.stringify(user));
         }
     }, [user]);
+
+    // Let tRPC know our current token
+    useEffect(() => {
+        setAuthToken(user.token);
+        console.log("Token set for tRPC");
+    }, [user.token]);
 
     return (
         <UserCtx.Provider value={{user, setUser}}>
