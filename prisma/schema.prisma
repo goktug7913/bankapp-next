@@ -25,44 +25,18 @@ model MasterAccount {
 }
 
 model CryptoAccount {
-  id              String              @id @default(auto()) @map("_id") @db.ObjectId
-  account_id      String              @unique
-  parent          MasterAccount       @relation(fields: [parent_id], references: [id])
-  parent_id       String              @db.ObjectId
-  balance         Int                 @default(0)
-  currency        String
-  name            String
-  transactions    CryptoTransaction[]
-  FiatTransaction FiatTransaction[]
-  is_active       Boolean             @default(true)
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
+  account_id   String              @unique
+  parent       MasterAccount       @relation(fields: [parent_id], references: [id])
+  parent_id    String              @db.ObjectId
+  balance      Float               @default(0)
+  currency     String
+  name         String
+  transactions CryptoTransaction[]
+  is_active    Boolean             @default(true)
 }
 
 model CryptoTransaction {
-  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
-  parent_account      CryptoAccount @relation(fields: [parent_account_id], references: [id])
-  parent_account_id   String        @db.ObjectId
-  amount              Float
-  currency            String
-  date                DateTime      @db.Date
-  description         String        @default("No description")
-  source_account      String
-  destination_account String
-  type                String
-}
-
-model FiatAccount {
-  id           String            @id @default(auto()) @map("_id") @db.ObjectId
-  account_id   String
-  parent       MasterAccount     @relation(fields: [parent_id], references: [id])
-  parent_id    String            @db.ObjectId
-  balance      Int
-  currency     String
-  name         String
-  transactions FiatTransaction[]
-  is_active    Boolean           @default(true)
-}
-
-model FiatTransaction {
   id                  String        @id @default(auto()) @map("_id") @db.ObjectId
   parent_account      CryptoAccount @relation(fields: [parent_account_id], references: [id])
   parent_account_id   String        @db.ObjectId
@@ -73,8 +47,31 @@ model FiatTransaction {
   source_account      String
   destination_account String
   type                String
-  FiatAccount         FiatAccount?  @relation(fields: [fiatAccountId], references: [id])
-  fiatAccountId       String?       @db.ObjectId
+}
+
+model FiatAccount {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  account_id   String            @unique
+  parent       MasterAccount     @relation(fields: [parent_id], references: [id])
+  parent_id    String            @db.ObjectId
+  balance      Float             @default(0)
+  currency     String
+  name         String
+  transactions FiatTransaction[]
+  is_active    Boolean           @default(true)
+}
+
+model FiatTransaction {
+  id                  String      @id @default(auto()) @map("_id") @db.ObjectId
+  parent_account      FiatAccount @relation(fields: [parent_account_id], references: [id])
+  parent_account_id   String      @db.ObjectId
+  amount              Float
+  currency            String
+  date                DateTime    @db.Date
+  description         String
+  source_account      String
+  destination_account String
+  type                String
 }
 
 model Operation {

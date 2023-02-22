@@ -58,7 +58,6 @@ export const UserProvider: React.FC<Props> = ({children}) => {
     // Let tRPC know our current token
     useEffect(() => {
         setAuthToken(user.token);
-        console.log("Token set for tRPC");
     }, [user.token]);
 
     return (

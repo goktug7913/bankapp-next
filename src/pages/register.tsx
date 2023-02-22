@@ -24,34 +24,20 @@ export default function Register()
 
     const user = useContext(UserCtx);
     const router = useRouter();
-    const registerCall = trpc.register.useMutation();
-
-
-    useEffect(() => {
-        if (registerCall.error) {
-            setError(registerCall.error.message);
-        }
-    }, [registerCall.error]);
-
-    useEffect(() => {
-        if(registerCall.isSuccess && !registerCall.isLoading) {
+    const registerCall = trpc.register.useMutation({
+        onSuccess: (data) => {
             console.log("Success");
             setLoading(false);
 
-            console.log(registerCall.data);
-            user.setUser(registerCall.data.user as any);
+            console.log(data);
+            user.setUser(data.user as any);
 
-            router.replace("/dashboard").then(() => {
-                window.location.reload();
-            });
+            router.replace("/dashboard").then();
+        },
+        onError: (err) => {
+            setError(err.message);
         }
-    }, [registerCall.isSuccess, registerCall.isLoading , registerCall.data]);
-
-    useEffect(() => {
-        if (user.user.account_id !== "") {
-            router.push("/dashboard");
-        }
-    }, [user.user.account_id]);
+    });
 
     useEffect(() => {
         setLoading(registerCall.isLoading);

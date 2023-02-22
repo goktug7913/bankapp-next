@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useState} from "react";
 import {
     Alert,
     Box,
@@ -27,10 +27,19 @@ function Login() {
 
     const [user, setUser] = useState({account_id: "", password: ""});
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
 
 
-    const Login = trpc.login.useMutation();
+    const Login = trpc.login.useMutation({
+        onSuccess: (data) => {
+            UserContext.setUser(data.user as any); // TODO: Fix user Interface
+            console.log("Success");
+
+            router.push("/dashboard").then();
+        },
+        onError: (err) => {
+            setError(err.message);
+        }
+    });
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -38,27 +47,6 @@ function Login() {
         setError("");
         Login.mutate(user);
     }
-
-    useEffect(() => {
-        if (Login.error) {
-            setError(Login.error.message);
-        }
-
-        if (Login.data?.user !== undefined && Login.data?.user !== null) {
-            UserContext.setUser(Login.data.user as any);
-            setAuthToken(UserContext.user.token);
-            console.log("User token set from login page");
-            console.log(Login.data);
-        }
-    }, [Login.error, Login.data]);
-
-    useEffect(() => {
-        if(Login.isSuccess && !Login.isLoading && Login.data?.user !== undefined) {
-            console.log("Success");
-            setLoading(false);
-            router.push("/dashboard");
-        }
-    }, [Login.isSuccess, Login.isLoading , Login.data]);
 
     return(
         <Container maxWidth={"sm"}>

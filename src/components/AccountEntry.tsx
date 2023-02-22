@@ -18,7 +18,7 @@ import {trpc} from "@/utils/trpc";
 
 export interface AccountEntryProps {
     account: IFiatAccount | ICryptoAccount;
-    type: string;
+    type: "fiat" | "crypto";
     onAccountChange: (account: IFiatAccount | ICryptoAccount) => void;
 }
 export const AccountEntry = (props:AccountEntryProps) => {
@@ -31,17 +31,24 @@ export const AccountEntry = (props:AccountEntryProps) => {
     const SetUserContext = useContext(UserCtx).setUser;
     const [processing, setProcessing] = useState(false);
 
-    const FaucetRequest = trpc.faucet.useMutation();
+    const  AccountData = trpc.getSubAccount.useQuery({ account_id: accState.account_id, type: props.type});
 
-    console.log(account);
     useEffect(() => {
-        // AxiosInstance.post("/account/", {account_id: UserContext.account_id})
-        //     .then((res) => {
-        //         SetUserContext(prevState => res?.data);
-        //     }).catch((err) => {
-        //     console.log(err);
-        // });
-    }, [accState, SetUserContext, UserContext.account_id]);
+        console.log(AccountData.data);
+        if (AccountData.data) {
+            setAccState(AccountData.data.account);
+        }
+    }, [AccountData.data]);
+
+    const FaucetRequest = trpc.faucet.useMutation({
+        onSuccess: (data) => {
+            console.log("Faucet ok: ",data);
+            // TODO: Invalidate the query
+        },
+        onError: (err) => {
+            console.log("Faucet error: ",err);
+        },
+    });
 
     const handleChange = (event: React.SyntheticEvent, isExpanded: boolean) => {
         setExpanded(isExpanded);
@@ -59,7 +66,12 @@ export const AccountEntry = (props:AccountEntryProps) => {
     }
 
     const handleFaucetRequest = () => {
-        // setProcessing(true);
+        FaucetRequest.mutate({
+            account_id: accState.account_id,
+            type: props.type,
+            amount: 10,
+            subaccount_id: props.account.account_id
+        })
     }
 
     const handleSendRequest = () => {

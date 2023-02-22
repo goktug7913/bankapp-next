@@ -18,14 +18,22 @@ function getBaseUrl() {
 /**
  * This is the auth token that is used for all requests.
  */
-let token: string | null = null;
-export function setAuthToken(newToken: string | null) {
-    token = newToken;
+let token: string = "";
+export function setAuthToken(newToken: string) {
+    if (newToken === token) return;
+
+    if (newToken === null || undefined) {
+        console.log("setAuthToken: (empty)");
+        token = "";
+    }
+    else {
+        token = "Bearer " + newToken;
+        console.log("setAuthToken: " + token);
+    }
 }
 
 export const trpc = createTRPCNext<AppRouter>({
     config({ ctx }) {
-
         return {
             links: [
                 httpBatchLink({
@@ -34,11 +42,9 @@ export const trpc = createTRPCNext<AppRouter>({
                      * @link https://trpc.io/docs/ssr
                      **/
                     url: `${getBaseUrl()}/api/trpc`,
+                    headers() { return { authorization: token } },
                 }),
             ],
-            headers: {
-                authorization: token,
-            }
             /**
              * @link https://tanstack.com/query/v4/docs/reference/QueryClient
              **/
@@ -49,5 +55,5 @@ export const trpc = createTRPCNext<AppRouter>({
     /**
      * @link https://trpc.io/docs/ssr
      **/
-    ssr: false,
+    ssr: false
 });

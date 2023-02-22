@@ -35,9 +35,19 @@ export default function Dashboard() {
     // Let's update the user context on page load
     // This is to make sure that the user context is up-to-date
     const UserData = trpc.getMasterAccount.useQuery();
+    const TotalAssetValue = trpc.getTotalValue.useQuery({display_currency: "USD"});
+
+    useEffect(() => {
+        console.log(TotalAssetValue.data);
+    }, [TotalAssetValue]);
+
+    useEffect(() => {
+        console.log("Query error: ",UserData.error);
+    }, [UserData.error]);
+
     useEffect(() => {
         if (UserData.data) {
-            console.log(UserData.data);
+            console.log("Query result: ",UserData.data);
             //SetUserContext(UserData.data); // TODO: Fix this
         }
     }, [UserData.data]);
@@ -49,7 +59,11 @@ export default function Dashboard() {
 
             <Box sx={{mt: 3}}>
                 <Typography variant="h5">Welcome back {UserContext.name}.</Typography>
-                <Typography variant="h6" sx={{mt: 2}}>Total Asset Value: 1952.22$</Typography>
+
+                <Typography variant="h6" sx={{mt: 2}}>Total Asset Value: {
+                    TotalAssetValue.isLoading ? "Loading..." : TotalAssetValue.data?.totalValue + "$"
+                }</Typography>
+
             </Box>
 
             <Divider sx={{my: 3}}/>

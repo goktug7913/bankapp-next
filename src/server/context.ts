@@ -7,29 +7,32 @@ import jwt from 'jsonwebtoken';
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export async function createContext(opts: CreateNextContextOptions) {
-  const prisma = new PrismaClient();
-  const { req, res } = opts;
+export function createContext(opts: CreateNextContextOptions) {
 
-  if (!req.headers.authorization) {
-    // We don't have an authorization header, so we can't verify the user
-    // User might be trying to login or register, we should handle this better
-    console.log('No authorization header');
+    const prisma = new PrismaClient();
+    const { req, res } = opts;
+
+    const auth = req.headers.authorization;
+    let user = undefined;
+
+    const needsAuth = (!req.url?.startsWith("/api/trpc/login"));
+    console.log("req.url: " + req.url);
+    console.log("needsAuth: " + needsAuth);
+
+    if (auth && auth.startsWith("Bearer ") && needsAuth) {
+        const token = auth.split(" ")[1];
+        user = jwt.verify(token, process.env.JWT_SECRET as string);
+        console.log("user: " + user);
+    } else {
+        console.log("No auth header");
+    }
+
     return {
-      prisma,
-      bcrypt,
-      jwt,
-    };
-  }
-  const user = jwt.verify(req.headers.authorization as string,
-    process.env.JWT_SECRET as string);
-     console.log('user: ' + JSON.stringify(user));
-  return {
-    prisma,
-    bcrypt,
-    jwt,
-    user,
-  };
+        prisma,
+        bcrypt,
+        jwt,
+        user,
+    }
 }
 
 export type Context = inferAsyncReturnType<typeof createContext>;
