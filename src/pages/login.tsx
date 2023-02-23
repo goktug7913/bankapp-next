@@ -55,7 +55,6 @@ function Login() {
             <Box component="form" onSubmit={onSubmit} noValidate sx={{ mt: 1 }}>
                 <TextField margin="normal" required fullWidth autoFocus label="Account ID" type="text" onChange={e => setUser({...user, account_id: e.target.value})}/>
                 <TextField margin="normal" required fullWidth label="Password" type="password" onChange={e => setUser({...user, password: e.target.value})}/>
-                <FormControlLabel control={<Checkbox value="remember" color="primary" />} label="Remember me"/>
 
                 <Button type="submit" fullWidth variant="contained" disabled={Login.isLoading} sx={{ mt: 3, mb: 2 }}>{Login.isLoading ? <CircularProgress color="primary" /> : "Submit"}</Button>
 

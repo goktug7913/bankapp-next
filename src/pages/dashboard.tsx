@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 
 import {
     Button,
@@ -18,12 +18,14 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
+import {useTheme} from "@mui/material/styles";
 
 import {UserCtx} from "@/context/UserState";
 import {AccountEntry} from "@/components/AccountEntry";
 
 import {useRouter} from "next/router";
 import {trpc} from "@/utils/trpc";
+import SendMoney from "@/components/sendMoney";
 
 export default function Dashboard() {
     const UserContext = useContext(UserCtx).user;
@@ -43,7 +45,8 @@ export default function Dashboard() {
     const CryptoQuery = trpc.getSubAccounts.useQuery({ type: "crypto" });
     const FiatQuery = trpc.getSubAccounts.useQuery({ type: "fiat" });
 
-    const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
+    const theme = useTheme();
+    const largeScreen = useMediaQuery(theme.breakpoints.up('md'));
 
     return(
         <Box sx={{mt:3, mx:3}}>
@@ -81,7 +84,7 @@ export default function Dashboard() {
                     </Stack>
                 </Box>
 
-                <Divider orientation="vertical" flexItem />
+                <Divider orientation={largeScreen ? "vertical":"horizontal"} flexItem />
 
                 <Box sx={{}}>
                     <Stack direction="column" gap={1} sx={{}}>

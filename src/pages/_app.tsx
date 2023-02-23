@@ -1,7 +1,7 @@
 import type { AppType } from 'next/app';
 import { trpc } from '@/utils/trpc';
 
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import {ThemeProvider, createTheme} from '@mui/material/styles';
 
 import CssBaseline from '@mui/material/CssBaseline';
 import "../styles/globals.css";

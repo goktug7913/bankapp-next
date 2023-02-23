@@ -12,6 +12,8 @@ import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import TextField from "@mui/material/TextField";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import {useTheme} from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export default function Settings() {
     const qc = trpc.useContext();
@@ -22,18 +24,21 @@ export default function Settings() {
 
     const router = useRouter();
 
+    const theme = useTheme();
+    const largeScreen = useMediaQuery(theme.breakpoints.up('md'));
+
     const updateCurrency = (e: SelectChangeEvent) => {
 
     };
 
     return (
-        <Box sx={{ mt: 2, mx: 3 }}>
+        <Box sx={{ mt: 2, mx: 2 }}>
             <Typography variant="h4">Settings</Typography>
             <Divider sx={{ my: 1 }} />
 
             <Box sx={{ mt: 3 }}>
                 <Grid2 container spacing={2}>
-                    <Grid2 xs={12} md={6}>
+                    <Grid2 xs={12} md={4}>
                         <Box sx={{ padding: 2 }}>
                             <Typography variant="h5">General</Typography>
 
@@ -71,7 +76,11 @@ export default function Settings() {
                         </Box>
                     </Grid2>
 
-                    <Grid2 xs={12} md={6}>
+                    {!largeScreen &&
+                        <Grid2 xs={12} md={6} sx={{px:3}}><Divider orientation="horizontal" flexItem/></Grid2>
+                    }
+
+                    <Grid2 xs={12} md={4}>
                         <Box sx={{ padding: 2 }}>
                             <Typography variant="h5">Security</Typography>
 

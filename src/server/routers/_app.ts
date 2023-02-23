@@ -370,7 +370,7 @@ export const appRouter = router({
                             time: "2021-05-01T00:00:00.0000000Z",
                             asset_id_base: "BTC",
                             asset_id_quote: "USD",
-                            rate: 100.0
+                            rate: 24000.0
                         }
                     }
                 }
@@ -405,7 +405,7 @@ export const appRouter = router({
                             time: "2021-05-01T00:00:00.0000000Z",
                             asset_id_base: "EUR",
                             asset_id_quote: "USD",
-                            rate: 4.0
+                            rate: 1.1
                         }
                     }
                 }
@@ -440,7 +440,7 @@ export const appRouter = router({
             destination_account_id: z.string(),
             amount: z.number().positive(),
             description: z.string(),
-        })).query( async ({ input, ctx }) => {
+        })).mutation( async ({ input, ctx }) => {
             const {prisma, user} = ctx;
             const {source_account_id, destination_account_id, amount, description} = input;
 
@@ -466,47 +466,57 @@ export const appRouter = router({
             if (source.balance < amount) { new TRPCError({ code: "BAD_REQUEST", message:"Not enough balance." }); return; }
 
             // Check if source and destination accounts are of the same type
+            if (source.type !== destination.type) { new TRPCError({ code: "BAD_REQUEST" }); return; }
 
             // Check if source and destination accounts are of the same currency
+            // TODO: Add support for cross-currency transfers
             if (source.currency !== destination.currency) { new TRPCError({ code: "INTERNAL_SERVER_ERROR" }); return; }
 
-            // Update source account balance
-            // await prisma.account.update({
-            //     where: {
-            //         id: source_account_id,
-            //     },
-            //     data: {
-            //         balance: {
-            //             decrement: amount,
-            //         }
-            //     }
-            // });
-            //
-            // // Update destination account balance
-            // await prisma.account.update({
-            //     where: {
-            //         id: destination_account_id,
-            //     },
-            //     data: {
-            //         balance: {
-            //             increment: amount,
-            //         }
-            //     }
-            // });
-            //
-            // // Create a transaction
-            // await prisma.transaction.create({
-            //     data: {
-            //         parent_account_id: source_account_id,
-            //         amount: amount,
-            //         type: "Transfer",
-            //         description: description,
-            //         currency: source.currency,
-            //         date: new Date(),
-            //         source_account: source.account_id,
-            //         destination_account: destination.account_id,
-            //     }
-            // });
+            const source_query = {
+                where: {
+                    id: source_account_id,
+                },
+                data: {
+                    balance: {
+                        decrement: amount,
+                    }
+                }
+            };
+
+            const destination_query = {
+                where: {
+                    id: destination_account_id,
+                },
+                data: {
+                    balance: {
+                        increment: amount,
+                    }
+                }
+            }
+
+            const transaction = {
+                data: {
+                    amount: amount,
+                    description: description,
+                    source_account: source_account_id,
+                    destination_account: destination_account_id,
+                    currency: source.currency,
+                    type: "Transfer",
+                    parent_account_id: source.account_id,
+                    date: new Date(),
+                }
+            }
+
+            //Update source account balance
+            if (source.type === "crypto") {
+                await prisma.cryptoAccount.update(source_query);
+                await prisma.cryptoAccount.update(destination_query);
+                await prisma.cryptoTransaction.create(transaction);
+            } else {
+                await prisma.fiatAccount.update(source_query);
+                await prisma.fiatAccount.update(destination_query);
+                await prisma.fiatTransaction.create(transaction);
+            }
 
             return {success: true};
         }),
