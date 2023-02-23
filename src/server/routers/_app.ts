@@ -3,7 +3,6 @@ import {procedure, router} from '../trpc';
 import * as process from "process";
 import {OperationType} from "@prisma/client";
 import {TRPCError} from "@trpc/server";
-import * as https from "https";
 
 
 // This is the main application router.
@@ -25,11 +24,6 @@ export const appRouter = router({
             const user = await prisma.masterAccount.findUnique({
                 where: {
                     account_id: account_id,
-                },
-                include: {
-                    fiat_accounts: true,
-                    crypto_accounts: true,
-                    operations: true,
                 }
             });
 
@@ -102,31 +96,36 @@ export const appRouter = router({
         }),
 
     getSubAccounts: procedure
-        .input(z.object({}))
+        .input(z.object({
+            type: z.string(),
+        }))
         .query( async ({ input, ctx }) => {
             const {prisma, user} = ctx;
-            console.log("account_id: " + user);
             if (!user) {
                 new TRPCError({
                     message:"Unauthorized",
                     code: "UNAUTHORIZED",
                 })
+                return;
             }
 
-            const accounts = await prisma.masterAccount.findUnique({
-                where: {id: user as string},
-                select: {
-                    crypto_accounts: true,
-                    fiat_accounts: true
-                }
-            });
-
-            return {accounts: accounts};
+            switch (input.type) {
+                case "crypto":
+                    const cryptoAccounts = await prisma.cryptoAccount.findMany({
+                        where: {parent_id: user.id},
+                    });
+                    return {accounts: cryptoAccounts};
+                case "fiat":
+                    const fiatAccounts = await prisma.fiatAccount.findMany({
+                        where: {parent_id: user.id},
+                    });
+                    return {accounts: fiatAccounts};
+            }
         }),
 
     getSubAccount: procedure
         .input(z.object({
-            account_id: z.string(),
+            _id: z.string(),
             type: z.string(),
         }))
         .query( async ({ input, ctx }) => {
@@ -144,8 +143,9 @@ export const appRouter = router({
             switch (input.type) {
                 case "crypto":
                     const cryptoAccount = await prisma.cryptoAccount.findUnique({
-                        where: {account_id: input.account_id},
+                        where: {id: input._id},
                         select: {
+                            id: true,
                             account_id: true,
                             name: true,
                             currency: true,
@@ -154,10 +154,12 @@ export const appRouter = router({
                         }
                     });
                     return {account: cryptoAccount};
+
                 case "fiat":
                     const fiatAccount = await prisma.fiatAccount.findUnique({
-                        where: {account_id: input.account_id},
+                        where: {id: input._id},
                         select: {
+                            id: true,
                             account_id: true,
                             name: true,
                             currency: true,
@@ -246,34 +248,46 @@ export const appRouter = router({
 
     faucet: procedure
         .input(z.object({
-            account_id: z.string(),
+            _id: z.string(),
             type: z.enum(['fiat', 'crypto']),
             amount: z.number(),
-            subaccount_id: z.string(),
         })).mutation( async ({input, ctx}) => {
             const {prisma, user} = ctx;
-            const {account_id,subaccount_id,type, amount} = input;
+            const {_id,type, amount} = input;
 
             switch (type) {
                 case "fiat":
-                    console.log("fiat account: " + subaccount_id);
-                    await prisma.fiatAccount.update({
+                    console.log("fiat account: " + _id);
+                    const acc = await prisma.fiatAccount.update({
                         where: {
-                            account_id: subaccount_id,
+                            id: _id,
                         },
                         data: {
                             balance: {
                                 increment: amount,
                             }
+                        }
+                    });
+                    // Create a transaction
+                    await prisma.fiatTransaction.create({
+                        data: {
+                            parent_account_id: _id,
+                            amount: amount,
+                            type: "Faucet",
+                            description: "Faucet",
+                            currency: acc.currency,
+                            date: new Date(),
+                            source_account: "Faucet",
+                            destination_account: acc.account_id,
                         }
                     });
                     break;
 
                 case "crypto":
-                    console.log("crypto account: " + subaccount_id);
-                    await prisma.cryptoAccount.update({
+                    console.log("crypto account: " + _id);
+                    const acco = await prisma.cryptoAccount.update({
                         where: {
-                            account_id: subaccount_id,
+                            id: _id,
                         },
                         data: {
                             balance: {
@@ -281,8 +295,22 @@ export const appRouter = router({
                             }
                         }
                     });
+                    // Create a transaction
+                    await prisma.cryptoTransaction.create({
+                        data: {
+                            parent_account_id: _id,
+                            amount: amount,
+                            type: "Faucet",
+                            description: "Faucet",
+                            currency: acco.currency,
+                            date: new Date(),
+                            source_account: "Faucet",
+                            destination_account: acco.account_id,
+                        }
+                    });
                     break;
             }
+
         }),
 
     getCurrencies: procedure
@@ -331,10 +359,23 @@ export const appRouter = router({
                 }
 
                 // Request exchange rate from CoinAPI
-                const result = await fetch(`https://rest.coinapi.io/v1/exchangerate/${account_currency}/${display_currency}`, {
-                    "method": "GET",
-                    "headers": {'X-CoinAPI-Key': '590DABAB-8285-4822-A43E-ED85789A98B8'}
-                })
+                // const result = await fetch(`https://rest.coinapi.io/v1/exchangerate/${account_currency}/${display_currency}`, {
+                //     "method": "GET",
+                //     "headers": {'X-CoinAPI-Key': '590DABAB-8285-4822-A43E-ED85789A98B8'}
+                // })
+
+                // Dummy data to not hit CoinAPI rate limit
+                const result = {
+                    json: () => {
+                        return {
+                            time: "2021-05-01T00:00:00.0000000Z",
+                            asset_id_base: "BTC",
+                            asset_id_quote: "USD",
+                            rate: 100.0
+                        }
+                    }
+                }
+
                 const data: CoinAPIResponse = await result.json();
 
                 // Add to total value
@@ -352,10 +393,24 @@ export const appRouter = router({
                 }
 
                 // Request exchange rate from CoinAPI
-                const result = await fetch(`https://rest.coinapi.io/v1/exchangerate/${account_currency}/${display_currency}`, {
-                    "method": "GET",
-                    "headers": {'X-CoinAPI-Key': '590DABAB-8285-4822-A43E-ED85789A98B8'}
-                })
+                // const result = await fetch(`https://rest.coinapi.io/v1/exchangerate/${account_currency}/${display_currency}`, {
+                //     "method": "GET",
+                //     "headers": {'X-CoinAPI-Key': '590DABAB-8285-4822-A43E-ED85789A98B8'}
+                // })
+                // const data: CoinAPIResponse = await result.json();
+
+                // Dummy data to not hit CoinAPI rate limit
+                const result = {
+                    json: () => {
+                        return {
+                            time: "2021-05-01T00:00:00.0000000Z",
+                            asset_id_base: "EUR",
+                            asset_id_quote: "USD",
+                            rate: 4.0
+                        }
+                    }
+                }
+
                 const data: CoinAPIResponse = await result.json();
 
                 // Add to total value
@@ -364,6 +419,20 @@ export const appRouter = router({
             // We only need 2 decimal places
             totalValue = Math.round(totalValue * 100) / 100;
             return {totalValue: totalValue};
+        }),
+
+    getSettings: procedure
+        .query( async ({ ctx }) => {
+            const {prisma, user} = ctx;
+
+            const User = await prisma.masterAccount.findUnique({
+                where: {id: user?.id},
+                select: {
+                    preferences: true
+                }
+            });
+
+            return User?.preferences;
         }),
 });
 

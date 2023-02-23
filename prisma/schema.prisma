@@ -22,6 +22,7 @@ model MasterAccount {
   createdAt       DateTime?       @default(now()) @db.Date
   updatedAt       DateTime?       @updatedAt @db.Date
   is_active       Boolean?        @default(true)
+  preferences     UserPreferences
 }
 
 model CryptoAccount {
@@ -127,4 +128,10 @@ enum LogType {
   ERROR
   WARNING
   INFO
+}
+
+type UserPreferences {
+  currency String @default("USD")
+  theme    String @default("dark")
+  language String @default("en")
 }

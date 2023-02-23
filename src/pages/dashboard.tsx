@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 
 import {
     Button,
@@ -24,7 +24,6 @@ import {trpc} from "@/utils/trpc";
 
 export default function Dashboard() {
     const UserContext = useContext(UserCtx).user;
-    const SetUserContext = useContext(UserCtx).setUser;
     const router = useRouter();
 
     function CreateNewAccount() {
@@ -35,22 +34,11 @@ export default function Dashboard() {
     // Let's update the user context on page load
     // This is to make sure that the user context is up-to-date
     const UserData = trpc.getMasterAccount.useQuery();
-    const TotalAssetValue = trpc.getTotalValue.useQuery({display_currency: "USD"});
-
-    useEffect(() => {
-        console.log(TotalAssetValue.data);
-    }, [TotalAssetValue]);
-
-    useEffect(() => {
-        console.log("Query error: ",UserData.error);
-    }, [UserData.error]);
-
-    useEffect(() => {
-        if (UserData.data) {
-            console.log("Query result: ",UserData.data);
-            //SetUserContext(UserData.data); // TODO: Fix this
-        }
-    }, [UserData.data]);
+    const TotalAssetValue = trpc.getTotalValue.useQuery({ display_currency: "USD" }, {
+        refetchOnWindowFocus: "always",
+    });
+    const CryptoQuery = trpc.getSubAccounts.useQuery({ type: "crypto" });
+    const FiatQuery = trpc.getSubAccounts.useQuery({ type: "fiat" });
 
     const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
 
@@ -60,9 +48,9 @@ export default function Dashboard() {
             <Box sx={{mt: 3}}>
                 <Typography variant="h5">Welcome back {UserContext.name}.</Typography>
 
-                <Typography variant="h6" sx={{mt: 2}}>Total Asset Value: {
-                    TotalAssetValue.isLoading ? "Loading..." : TotalAssetValue.data?.totalValue + "$"
-                }</Typography>
+                <Typography variant="h6" sx={{mt: 2}}>
+                    Total Asset Value: { TotalAssetValue.isLoading ? "Loading..." : TotalAssetValue.data?.totalValue + "$" }
+                </Typography>
 
             </Box>
 
@@ -77,8 +65,8 @@ export default function Dashboard() {
                         </Stack>
 
                         <List>
-                            {UserContext.fiat_accounts?.map((faccount, index) => {
-                                return (<AccountEntry key={index} account={faccount} type={"fiat"} onAccountChange={() => {}}/>)
+                            {FiatQuery.data?.accounts?.map((account, index) => {
+                                return (<AccountEntry key={index} m_id={account.id} type={"fiat"} onAccountChange={() => {}}/>)
                             })}
                         </List>
                     </Stack>
@@ -94,8 +82,8 @@ export default function Dashboard() {
                         </Stack>
 
                         <List>
-                            {UserContext.crypto_accounts?.map((caccount, index) => {
-                                return (<AccountEntry key={index} account={caccount} type={"crypto"} onAccountChange={() => {}}/>)
+                            {CryptoQuery.data?.accounts?.map((account, index) => {
+                                return (<AccountEntry key={index} m_id={account.id} type={"crypto"} onAccountChange={() => {}}/>)
                             })}
                         </List>
                     </Stack>

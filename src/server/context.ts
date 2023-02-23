@@ -7,13 +7,20 @@ import jwt from 'jsonwebtoken';
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
+
+interface User {
+    id: string;
+    iat: number;
+    exp: number;
+}
+
 export function createContext(opts: CreateNextContextOptions) {
 
     const prisma = new PrismaClient();
     const { req, res } = opts;
 
     const auth = req.headers.authorization;
-    let user = undefined;
+    let user:User = {id: "", iat: 0, exp: 0};
 
     const needsAuth = (!req.url?.startsWith("/api/trpc/login"));
     console.log("req.url: " + req.url);
@@ -21,7 +28,7 @@ export function createContext(opts: CreateNextContextOptions) {
 
     if (auth && auth.startsWith("Bearer ") && needsAuth) {
         const token = auth.split(" ")[1];
-        user = jwt.verify(token, process.env.JWT_SECRET as string);
+        user = jwt.verify(token, process.env.JWT_SECRET as string) as User;
         console.log("user: " + user);
     } else {
         console.log("No auth header");

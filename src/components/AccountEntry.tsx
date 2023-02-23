@@ -1,7 +1,7 @@
 import {
     Accordion,
     AccordionDetails,
-    AccordionSummary, Box, Button, Pagination,
+    AccordionSummary, Box, Button, Pagination, Skeleton,
     Stack,
     Typography
 } from "@mui/material";
@@ -9,43 +9,44 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
-import React, {useContext, useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import {UserCtx} from "@/context/UserState";
-import {ICryptoAccount, IFiatAccount, ITransaction} from "@/model/UserModels";
+import {ICryptoAccount, IFiatAccount} from "@/model/UserModels";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {trpc} from "@/utils/trpc";
 
 export interface AccountEntryProps {
-    account: IFiatAccount | ICryptoAccount;
+    m_id: string
     type: "fiat" | "crypto";
     onAccountChange: (account: IFiatAccount | ICryptoAccount) => void;
 }
 export const AccountEntry = (props:AccountEntryProps) => {
-    const {account, onAccountChange} = props;
+    const AccountQuery = trpc.getSubAccount.useQuery({ _id: props.m_id, type: props.type}, {
+        enabled: props.m_id !== "",
+        onSuccess: (data) => {
+            // Order transactions by date
+            data.account?.transactions?.sort((a, b) => {
+                return new Date(b.date).getTime() - new Date(a.date).getTime();
+            });
+            setAccState(data.account)
+        },
+        refetchOnWindowFocus: "always",
+    });
+
+    const qc = trpc.useContext();
 
     const [expanded, setExpanded] = useState(false);
-    const [accState, setAccState] = useState(account);
+    const [accState, setAccState] = useState(AccountQuery.data?.account);
     const [page, setPage] = useState(1);
-    const UserContext = useContext(UserCtx).user;
-    const SetUserContext = useContext(UserCtx).setUser;
     const [processing, setProcessing] = useState(false);
-
-    const  AccountData = trpc.getSubAccount.useQuery({ account_id: accState.account_id, type: props.type});
-
-    useEffect(() => {
-        console.log(AccountData.data);
-        if (AccountData.data) {
-            setAccState(AccountData.data.account);
-        }
-    }, [AccountData.data]);
 
     const FaucetRequest = trpc.faucet.useMutation({
         onSuccess: (data) => {
-            console.log("Faucet ok: ",data);
-            // TODO: Invalidate the query
+            setProcessing(false);
+            qc.invalidate().then();
         },
         onError: (err) => {
+            setProcessing(false);
             console.log("Faucet error: ",err);
         },
     });
@@ -55,22 +56,15 @@ export const AccountEntry = (props:AccountEntryProps) => {
     }
 
     const handleClosureRequest = () => {
-        // axiosInstance.delete("/account/"+props.type+"/"+account.account_id)
-        //     .then((res) => {
-        //         console.log(res);
-        //         setAccState(res.data);
-        //         onAccountChange(res.data);
-        //     }).catch((err) => {
-        //     console.log(err);
-        // });
+
     }
 
     const handleFaucetRequest = () => {
+        setProcessing(true);
         FaucetRequest.mutate({
-            account_id: accState.account_id,
+            _id: accState?.id as string,
             type: props.type,
             amount: 10,
-            subaccount_id: props.account.account_id
         })
     }
 
@@ -89,7 +83,8 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     const CalculateTransactionPages = () => {
         // 10 transactions per page
-        return Math.ceil(accState.transactions?.length / 10);
+        if (!accState?.transactions?.length) return 0; // TS complains about undefined
+        return Math.ceil(accState?.transactions?.length / 10);
     }
 
     const FillPages = () => {
@@ -97,13 +92,13 @@ export const AccountEntry = (props:AccountEntryProps) => {
         let items = [];
         // 10 transactions per page
         for (let i = 1; i <= pages; i++) {
-            items.push(accState.transactions?.slice((i-1)*10, i*10));
+            items.push(accState?.transactions?.slice((i-1)*10, i*10));
         }
     }
 
     useEffect(() => {
         FillPages();
-    }, [accState.transactions]);
+    }, [accState?.transactions]);
 
     const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
 
@@ -114,16 +109,16 @@ export const AccountEntry = (props:AccountEntryProps) => {
                     <Typography>
                         <Grid2 container spacing={1}>
                             <Grid2><AccountBalanceWalletIcon sx={{fontSize: 24}} /></Grid2>
-                            <Grid2>{accState.name}</Grid2>
+                            <Grid2>{accState?.name}</Grid2>
                         </Grid2>
                     </Typography>
 
-                    <Typography>{accState.balance + " " + accState.currency}</Typography>
+                    <Typography>{AccountQuery.isLoading ? <Skeleton variant="text" /> : accState?.balance + " " + accState?.currency}</Typography>
                 </div>
             </AccordionSummary>
 
             <AccordionDetails >
-                <Typography sx={{mx:0.5, mb:1}}>Account Number: {accState.account_id}</Typography>
+                <Typography sx={{mx:0.5, mb:1}}>Account Number: {accState?.account_id}</Typography>
 
                 <Stack direction="row" gap={2} sx={{m:0.5}}>
                     <Button disabled={processing} variant="outlined" color={"primary"} onClick={handleSendRequest}>Send</Button>
@@ -135,17 +130,18 @@ export const AccountEntry = (props:AccountEntryProps) => {
                 <Accordion sx={{mt:2}}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                         <Typography sx={{mx:1}}>{
-                            props.account.transactions?.length === 0 ?
+                            accState?.transactions?.length === 0 ?
                                 "No transactions" :
-                                props.account.transactions?.length === 1 ? "1 transaction" : accState.transactions?.length + " transactions"
+                                accState?.transactions?.length === 1 ? "1 transaction" : accState?.transactions?.length + " transactions"
                         }</Typography>
                     </AccordionSummary>
+
                     <AccordionDetails>
                         <Box sx={{width:"maxWidth"}}>
                             <Pagination count={CalculateTransactionPages()} showFirstButton showLastButton size={"small"} onChange={(event: React.ChangeEvent<unknown>, page: number) => {setPage(page);}}/>
 
-                            {accState.transactions?.length ? accState.transactions?.slice(page*10-10,page*10).map( // Check if the slice is correct
-                                (transaction: ITransaction) => (
+                            {accState?.transactions?.length ? accState?.transactions?.slice(page*10-10,page*10).map( // Check if the slice is correct
+                                (transaction) => (
                                 <Stack key={transaction.id} direction="row" gap={2} sx={{m:0.5, justifyContent:"space-between"}}>
                                     <Typography >{transaction.type}</Typography>
                                     <Stack direction={"row"} gap={2}>
@@ -158,6 +154,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
                         </Box>
                     </AccordionDetails>
                 </Accordion>
+
             </AccordionDetails>
         </Accordion>
     );

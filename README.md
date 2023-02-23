@@ -14,7 +14,6 @@ The project is built using the following technologies:
 - [MongoDB](https://www.mongodb.com/) - Database
 - [Vercel](https://vercel.com/) - Deployment and CI/CD
 - [Material UI](https://material-ui.com/) - React UI framework
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
 
 
 ## Getting Started
