@@ -1,8 +1,9 @@
 import {useContext} from "react";
 import {UserCtx} from "@/context/UserState";
 import {useRouter} from "next/router";
+import dynamic from "next/dynamic";
 
-export default function Logout() {
+function Logout() {
 
     const UserContext = useContext(UserCtx);
     const router = useRouter()
@@ -20,3 +21,5 @@ export default function Logout() {
         <p>Logging out...</p>
     )
 }
+
+export default function LogoutCSR() {dynamic(() => Promise.resolve(Logout), { ssr: false }) }
