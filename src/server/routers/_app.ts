@@ -74,10 +74,9 @@ export const appRouter = router({
                     email: input.email,
                     password: hashedPassword,
                     operations: {
-                        create: {
-                            type: OperationType.CREATE_ACCOUNT,
-                        }
-                    }
+                        create: { type: OperationType.CREATE_ACCOUNT },
+                    },
+                    preferences: {}
                 },
             });
 
