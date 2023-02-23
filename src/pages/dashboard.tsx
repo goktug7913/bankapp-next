@@ -9,15 +9,18 @@ import {
     Box,
     Accordion,
     AccordionSummary,
-    AccordionDetails
+    AccordionDetails, Tooltip, IconButton
 } from "@mui/material";
+import Grid2 from "@mui/material/Unstable_Grid2";
+
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import InventoryIcon from '@mui/icons-material/Inventory';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 import {UserCtx} from "@/context/UserState";
 import {AccountEntry} from "@/components/AccountEntry";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Grid2 from "@mui/material/Unstable_Grid2";
-import InventoryIcon from '@mui/icons-material/Inventory';
 
 import {useRouter} from "next/router";
 import {trpc} from "@/utils/trpc";
@@ -48,9 +51,15 @@ export default function Dashboard() {
             <Box sx={{mt: 3}}>
                 <Typography variant="h5">Welcome back {UserContext.name}.</Typography>
 
-                <Typography variant="h6" sx={{mt: 2}}>
-                    Total Asset Value: { TotalAssetValue.isLoading ? "Loading..." : TotalAssetValue.data?.totalValue + "$" }
-                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+                    <Typography variant="h6">
+                        Total Asset Value: {TotalAssetValue.isLoading ? "Loading..." : TotalAssetValue.data?.totalValue + "$"}
+                    </Typography>
+
+                    <Tooltip title="This shows total value of all your assets, but I hit the free exchange rate API limits, so currently it calculates random rates. :(">
+                        <IconButton size={"small"} color={"primary"}><InfoOutlinedIcon fontSize="small" /></IconButton>
+                    </Tooltip>
+                </Box>
 
             </Box>
 

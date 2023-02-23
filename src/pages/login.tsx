@@ -69,7 +69,7 @@ function Login() {
                     <Alert severity="info">
                         You can use the testing account <br/>
                         Account ID: 12341234123 <br/>
-                        Password: testtest
+                        Password: 12341234
                     </Alert>
                 </Fade>
             </Box>

@@ -1,25 +1,30 @@
-import {useContext} from "react";
+import {useContext, useEffect} from "react";
 import {UserCtx} from "@/context/UserState";
 import {useRouter} from "next/router";
-import dynamic from "next/dynamic";
+import {CircularProgress, Container, Paper, Typography} from "@mui/material";
 
-function Logout() {
+export default function Logout() {
 
     const UserContext = useContext(UserCtx);
     const router = useRouter()
 
-    router.push("/").then(
-        () => {
-            // Clear user data
-            UserContext.setUser({} as any);
-            // Clear session storage
-            sessionStorage.clear();
-        }
-    );
+    useEffect(() => {
+        router.push("/").then(
+            () => {
+                // Clear user data
+                UserContext.setUser({} as any);
+                // Clear session storage
+                sessionStorage.clear();
+            }
+        );
+    },[])
 
     return (
-        <p>Logging out...</p>
+        <Container>
+            <Paper sx={{ p: 2, mt: 2, mx: 3 }}>
+                <Typography variant="h4">Logging out...</Typography>
+                <CircularProgress color="primary" />
+            </Paper>
+        </Container>
     )
 }
-
-export default function LogoutCSR() {dynamic(() => Promise.resolve(Logout), { ssr: false }) }

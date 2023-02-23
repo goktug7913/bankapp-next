@@ -433,6 +433,83 @@ export const appRouter = router({
 
             return User?.preferences;
         }),
+
+    transferMoney: procedure
+        .input(z.object({
+            source_account_id: z.string(),
+            destination_account_id: z.string(),
+            amount: z.number().positive(),
+            description: z.string(),
+        })).query( async ({ input, ctx }) => {
+            const {prisma, user} = ctx;
+            const {source_account_id, destination_account_id, amount, description} = input;
+
+            // Get source and destination accounts, they could be crypto or fiat
+            const source = await prisma.cryptoAccount.findUnique({
+                where: { account_id: source_account_id }
+            }) || await prisma.fiatAccount.findUnique({
+                where: { account_id: source_account_id }
+            });
+
+            const destination = await prisma.cryptoAccount.findUnique({
+                where: { account_id: destination_account_id }
+            }) || await prisma.fiatAccount.findUnique({
+                where: { account_id: destination_account_id }
+            });
+
+            if (!source || !destination) { new TRPCError({ code: "BAD_REQUEST" }); return; }
+
+            // Check if initiator is the owner of the source account
+            if (source.parent_id !== user?.id) { new TRPCError({ code: "BAD_REQUEST" }); return; }
+
+            // Check if source account has enough balance
+            if (source.balance < amount) { new TRPCError({ code: "BAD_REQUEST", message:"Not enough balance." }); return; }
+
+            // Check if source and destination accounts are of the same type
+
+            // Check if source and destination accounts are of the same currency
+            if (source.currency !== destination.currency) { new TRPCError({ code: "INTERNAL_SERVER_ERROR" }); return; }
+
+            // Update source account balance
+            // await prisma.account.update({
+            //     where: {
+            //         id: source_account_id,
+            //     },
+            //     data: {
+            //         balance: {
+            //             decrement: amount,
+            //         }
+            //     }
+            // });
+            //
+            // // Update destination account balance
+            // await prisma.account.update({
+            //     where: {
+            //         id: destination_account_id,
+            //     },
+            //     data: {
+            //         balance: {
+            //             increment: amount,
+            //         }
+            //     }
+            // });
+            //
+            // // Create a transaction
+            // await prisma.transaction.create({
+            //     data: {
+            //         parent_account_id: source_account_id,
+            //         amount: amount,
+            //         type: "Transfer",
+            //         description: description,
+            //         currency: source.currency,
+            //         date: new Date(),
+            //         source_account: source.account_id,
+            //         destination_account: destination.account_id,
+            //     }
+            // });
+
+            return {success: true};
+        }),
 });
 
 // export type definition of API

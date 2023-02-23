@@ -1,8 +1,8 @@
 import {
-    Box,
-    CircularProgress, Divider, FormControl, InputLabel,
+    Box, Button,
+    CircularProgress, Divider, FormControl, IconButton, InputLabel,
     MenuItem,
-    Select, SelectChangeEvent,
+    Select, SelectChangeEvent, Tooltip,
     Typography,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
@@ -11,6 +11,7 @@ import { UserCtx } from "@/context/UserState";
 import { useRouter } from "next/router";
 import { trpc } from "@/utils/trpc";
 import TextField from "@mui/material/TextField";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 export default function Settings() {
     const qc = trpc.useContext();
@@ -73,6 +74,25 @@ export default function Settings() {
                     <Grid2 xs={12} md={6}>
                         <Box sx={{ padding: 2 }}>
                             <Typography variant="h5">Security</Typography>
+
+                            <Box sx={{ paddingTop: 2 }}>
+                                <TextField type={"password"} fullWidth label="Current Password" />
+                            </Box>
+                            <Box sx={{ paddingTop: 2 }}>
+                                <TextField type={"password"} fullWidth label="New Password" />
+                            </Box>
+                            <Box sx={{ paddingTop: 2 }}>
+                                <TextField type={"password"} fullWidth label="Confirm New Password" />
+                            </Box>
+
+                            <Button sx={{ mt: 2 }} fullWidth variant="contained">Change Password</Button>
+                            <Button sx={{ mt: 2 }} fullWidth color={"warning"} variant="contained">
+                                Temporary Deactivation
+                                <Tooltip title="Your account will be deactivated temporarily, you can reactivate by contacting via e-mail.">
+                                    <IconButton size={"small"} color={"inherit"}><InfoOutlinedIcon fontSize="small" /></IconButton>
+                                </Tooltip>
+                            </Button>
+                            <Button sx={{ mt: 2 }} fullWidth color={"error"} variant="contained">Delete Account</Button>
                         </Box>
                     </Grid2>
                 </Grid2>

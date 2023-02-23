@@ -22,7 +22,7 @@ export function createContext(opts: CreateNextContextOptions) {
     const auth = req.headers.authorization;
     let user:User = {id: "", iat: 0, exp: 0};
 
-    const needsAuth = (!req.url?.startsWith("/api/trpc/login"));
+    const needsAuth = !req.url?.startsWith("/api/trpc/login") && !req.url?.startsWith("/api/trpc/register");
     console.log("req.url: " + req.url);
     console.log("needsAuth: " + needsAuth);
 

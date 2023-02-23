@@ -103,17 +103,17 @@ export const AccountEntry = (props:AccountEntryProps) => {
     const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
 
     return (
-        <Accordion sx={{maxWidth:largeScreen ? 600 : 1200, minWidth:largeScreen ? 500 : 350}}>
+        <Accordion sx={{maxWidth:largeScreen ? 600 : 1200, minWidth:largeScreen ? 500 : 350}} TransitionProps={{ unmountOnExit: true }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                 <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%"}}>
                     <Typography>
                         <Grid2 container spacing={1}>
                             <Grid2><AccountBalanceWalletIcon sx={{fontSize: 24}} /></Grid2>
-                            <Grid2>{accState?.name}</Grid2>
+                            {AccountQuery.isLoading ? <Skeleton variant="text" width={140} /> : <Grid2>{accState?.name}</Grid2>}
                         </Grid2>
                     </Typography>
 
-                    <Typography>{AccountQuery.isLoading ? <Skeleton variant="text" /> : accState?.balance + " " + accState?.currency}</Typography>
+                    {AccountQuery.isFetching ? <Skeleton variant="text" width={40} /> : <Typography>{accState?.balance + " " + accState?.currency}</Typography>}
                 </div>
             </AccordionSummary>
 
