@@ -7,8 +7,7 @@ import {
     CardContent,
     CardMedia,
     Container,
-    Divider,
-    Paper,
+    Divider, Paper,
     Stack,
     Typography
 } from "@mui/material";
@@ -18,11 +17,58 @@ import commercialimg from '@/commercialbank.jpg'
 import personalimg from '@/personalbank.jpg'
 import wealthimg from '@/wealthmgmt.jpg'
 import investmentimg from '@/investment.jpg'
-import Image from "next/image";
+
+const CountryFlags = [
+    { name: "United States", flag: "https://flagicons.lipis.dev/flags/4x3/us.svg" },
+    { name: "United Kingdom", flag: "https://flagicons.lipis.dev/flags/4x3/gb.svg" },
+    { name: "Germany", flag: "https://flagicons.lipis.dev/flags/4x3/de.svg" },
+    { name: "France", flag: "https://flagicons.lipis.dev/flags/4x3/fr.svg" },
+    { name: "Spain", flag: "https://flagicons.lipis.dev/flags/4x3/es.svg" },
+    { name: "Italy", flag: "https://flagicons.lipis.dev/flags/4x3/it.svg" },
+    { name: "Netherlands", flag: "https://flagicons.lipis.dev/flags/4x3/nl.svg" },
+    { name: "Belgium", flag: "https://flagicons.lipis.dev/flags/4x3/be.svg" },
+    { name: "Switzerland", flag: "https://flagicons.lipis.dev/flags/4x3/ch.svg" },
+    { name: "Austria", flag: "https://flagicons.lipis.dev/flags/4x3/at.svg" },
+    { name: "Sweden", flag: "https://flagicons.lipis.dev/flags/4x3/se.svg" },
+    { name: "Norway", flag: "https://flagicons.lipis.dev/flags/4x3/no.svg" },
+    { name: "Denmark", flag: "https://flagicons.lipis.dev/flags/4x3/dk.svg" },
+    { name: "Finland", flag: "https://flagicons.lipis.dev/flags/4x3/fi.svg" },
+    { name: "Poland", flag: "https://flagicons.lipis.dev/flags/4x3/pl.svg" },
+    { name: "Czech Republic", flag: "https://flagicons.lipis.dev/flags/4x3/cz.svg" },
+    { name: "Hungary", flag: "https://flagicons.lipis.dev/flags/4x3/hu.svg" },
+    { name: "Portugal", flag: "https://flagicons.lipis.dev/flags/4x3/pt.svg" },
+    { name: "Greece", flag: "https://flagicons.lipis.dev/flags/4x3/gr.svg" },
+    { name: "Romania", flag: "https://flagicons.lipis.dev/flags/4x3/ro.svg" },
+    { name: "Slovakia", flag: "https://flagicons.lipis.dev/flags/4x3/sk.svg" },
+    { name: "Ireland", flag: "https://flagicons.lipis.dev/flags/4x3/ie.svg" },
+    { name: "Bulgaria", flag: "https://flagicons.lipis.dev/flags/4x3/bg.svg" },
+    { name: "Lithuania", flag: "https://flagicons.lipis.dev/flags/4x3/lt.svg" },
+    { name: "Croatia", flag: "https://flagicons.lipis.dev/flags/4x3/hr.svg" },
+    { name: "Latvia", flag: "https://flagicons.lipis.dev/flags/4x3/lv.svg" },
+    { name: "Estonia", flag: "https://flagicons.lipis.dev/flags/4x3/ee.svg" },
+    { name: "Slovenia", flag: "https://flagicons.lipis.dev/flags/4x3/si.svg" },
+    { name: "Cyprus", flag: "https://flagicons.lipis.dev/flags/4x3/cy.svg" },
+    { name: "Luxembourg", flag: "https://flagicons.lipis.dev/flags/4x3/lu.svg" },
+    { name: "Malta", flag: "https://flagicons.lipis.dev/flags/4x3/mt.svg" },
+    { name: "Bosnia and Herzegovina", flag: "https://flagicons.lipis.dev/flags/4x3/ba.svg" },
+    { name: "Serbia", flag: "https://flagicons.lipis.dev/flags/4x3/rs.svg" },
+    { name: "Albania", flag: "https://flagicons.lipis.dev/flags/4x3/al.svg" },
+    { name: "North Macedonia", flag: "https://flagicons.lipis.dev/flags/4x3/mk.svg" },
+    { name: "Montenegro", flag: "https://flagicons.lipis.dev/flags/4x3/me.svg" },
+    { name: "Andorra", flag: "https://flagicons.lipis.dev/flags/4x3/ad.svg" },
+    { name: "Liechtenstein", flag: "https://flagicons.lipis.dev/flags/4x3/li.svg" },
+    { name: "Monaco", flag: "https://flagicons.lipis.dev/flags/4x3/mc.svg" },
+    { name: "San Marino", flag: "https://flagicons.lipis.dev/flags/4x3/sm.svg" },
+    { name: "Vatican City", flag: "https://flagicons.lipis.dev/flags/4x3/va.svg" },
+    { name: "Turkey", flag: "https://flagicons.lipis.dev/flags/4x3/tr.svg" },
+    { name: "Russia", flag: "https://flagicons.lipis.dev/flags/4x3/ru.svg" },
+    { name: "Ukraine", flag: "https://flagicons.lipis.dev/flags/4x3/ua.svg" },
+    { name: "Belarus", flag: "https://flagicons.lipis.dev/flags/4x3/by.svg" },
+]
 
 export default function Home() {
 
-    const [cardWidth, setCardWidth] = React.useState(268);
+    const [cardWidth, setCardWidth] = React.useState(300);
 
     return (
         <Box sx={{my:3}}>
@@ -54,9 +100,9 @@ export default function Home() {
                         </Typography>
                         <Divider/>
 
-                        <Grid2 container spacing={1} sm={6} xs={7} md={8} lg={12} sx={{alignSelf:"center"}}>
-                            <Grid2>
-                                <Card sx={{ maxWidth: cardWidth, height:"100%" }}>
+                        <Grid2 container spacing={1} sx={{alignSelf:"center"}}>
+                            <Grid2 sm={6} xs={12} md={4} lg={3}>
+                                <Card sx={{height:"100%" }}>
                                     <CardActionArea>
                                         <CardMedia component="img" height="140" image={personalimg.src} alt=""/>
                                         <CardContent>
@@ -69,8 +115,8 @@ export default function Home() {
                                 </Card>
                             </Grid2>
 
-                            <Grid2>
-                                <Card sx={{ maxWidth: cardWidth, height:"100%" }}>
+                            <Grid2 sm={6} xs={12} md={4} lg={3}>
+                                <Card sx={{ height:"100%" }}>
                                     <CardActionArea>
                                         <CardMedia component="img" height="140" image={commercialimg.src} alt=""/>
                                         <CardContent>
@@ -83,8 +129,8 @@ export default function Home() {
                                 </Card>
                             </Grid2>
 
-                            <Grid2>
-                                <Card sx={{ maxWidth: cardWidth, height:"100%" }}>
+                            <Grid2 sm={6} xs={12} md={4} lg={3}>
+                                <Card sx={{ height:"100%" }}>
                                     <CardActionArea>
                                         <CardMedia component="img" height="140" image={wealthimg.src} alt=""/>
                                         <CardContent>
@@ -97,8 +143,8 @@ export default function Home() {
                                 </Card>
                             </Grid2>
 
-                            <Grid2>
-                                <Card sx={{ maxWidth: cardWidth, height:"100%" }}>
+                            <Grid2 sm={6} xs={12} md={4} lg={3}>
+                                <Card sx={{ height:"100%" }}>
                                     <CardActionArea>
                                         <CardMedia component="img" height="140" image={investmentimg.src} alt=""/>
                                         <CardContent>
@@ -126,31 +172,23 @@ export default function Home() {
                             We have offices in over 50 countries around the world. Our main offices are located in:
                         </Typography>
 
-                        <Grid2 container spacing={1} sx={{}}>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/ca.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/cz.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/cw.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/is.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/il.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/lu.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/us.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/gb.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/fr.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/de.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/it.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/es.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/br.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/tr.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/ru.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/in.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/au.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/za.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/kr.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/jp.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                            <Grid2><Image src={"https://flagicons.lipis.dev/flags/4x3/cn.svg"} alt={"flag"} height={30} width={36} /></Grid2>
-                        </Grid2>
+                        <Box>
+                            {CountryFlags.map((item) => (
+                                <img src={`${item.flag}?w=40&h=30&`}
+                                     srcSet={`${item.flag}?w=40&h=30`}
+                                     alt={item.name}
+                                     loading={"lazy"}
+                                     width={40}
+                                     height={30}
+                                     key={item.name}
+                                        style={{marginRight: 8}}
+                                />
+                            ))}
+                        </Box>
+
                     </Stack>
                 </Paper>
+
             </Container>
         </Box>
     );
