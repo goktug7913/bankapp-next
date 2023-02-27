@@ -94,14 +94,14 @@ export default function Settings() {
                                 <TextField type={"password"} fullWidth label="Confirm New Password" />
                             </Box>
 
-                            <Button sx={{ mt: 2 }} fullWidth variant="contained">Change Password</Button>
-                            <Button sx={{ mt: 2 }} fullWidth color={"warning"} variant="contained">
+                            <Button sx={{ mt: 2 }} fullWidth variant="outlined">Change Password</Button>
+                            <Button sx={{ mt: 2 }} fullWidth color={"warning"} variant="outlined">
                                 Temporary Deactivation
                                 <Tooltip title="Your account will be deactivated temporarily, you can reactivate by contacting via e-mail.">
                                     <IconButton size={"small"} color={"inherit"}><InfoOutlinedIcon fontSize="small" /></IconButton>
                                 </Tooltip>
                             </Button>
-                            <Button sx={{ mt: 2 }} fullWidth color={"error"} variant="contained">Delete Account</Button>
+                            <Button sx={{ mt: 2 }} fullWidth color={"error"} variant="outlined">Delete Account</Button>
                         </Box>
                     </Grid2>
                 </Grid2>

@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import {useContext} from "react";
 
 import AppBar from '@mui/material/AppBar';

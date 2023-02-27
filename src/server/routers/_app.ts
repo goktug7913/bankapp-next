@@ -29,8 +29,7 @@ export const appRouter = router({
 
             if (!user) {
                 console.log("user not found");
-                new TRPCError({ code: "NOT_FOUND" });
-                return; // To stop TypeScript from complaining
+                throw new TRPCError({ code: "NOT_FOUND" });
             }
 
             if (bcrypt.compareSync(password, user.password as string)) {
@@ -49,7 +48,7 @@ export const appRouter = router({
                 return {user: {...user, password: undefined, token: token}};
             } else {
                 // Passwords don't match
-                new TRPCError({ code: "UNAUTHORIZED" });
+                throw new TRPCError({ code: "UNAUTHORIZED" });
             }
         }),
 
@@ -76,7 +75,7 @@ export const appRouter = router({
                     operations: {
                         create: { type: OperationType.CREATE_ACCOUNT },
                     },
-                    preferences: {}
+                    preferences: {}, // Hopefully assigns default values
                 },
             });
 
@@ -101,11 +100,10 @@ export const appRouter = router({
         .query( async ({ input, ctx }) => {
             const {prisma, user} = ctx;
             if (!user) {
-                new TRPCError({
+                throw new TRPCError({
                     message:"Unauthorized",
                     code: "UNAUTHORIZED",
                 })
-                return;
             }
 
             switch (input.type) {
@@ -119,6 +117,14 @@ export const appRouter = router({
                         where: {parent_id: user.id},
                     });
                     return {accounts: fiatAccounts};
+                case "all":
+                    const fiatA = await prisma.fiatAccount.findMany({
+                        where: {parent_id: user.id},
+                    });
+                    const cryptoA = await prisma.cryptoAccount.findMany({
+                        where: {parent_id: user.id},
+                    });
+                    return {accounts: [...fiatA, ...cryptoA]};
             }
         }),
 
@@ -128,13 +134,13 @@ export const appRouter = router({
             type: z.string(),
         }))
         .query( async ({ input, ctx }) => {
-           // We look for the account in the database
+            // We look for the account in the database
             const {prisma, user} = ctx;
             console.log("account_id: " + user);
 
             if (!user) {
-                new TRPCError({
-                    message:"Unauthorized",
+                throw new TRPCError({
+                    message: "Unauthorized",
                     code: "UNAUTHORIZED",
                 })
             }
@@ -149,11 +155,31 @@ export const appRouter = router({
                             name: true,
                             currency: true,
                             balance: true,
-                            transactions: true,
                         }
                     });
-                    return {account: cryptoAccount};
 
+                    if (!cryptoAccount) {
+                        throw new TRPCError({
+                            message: "Account not found",
+                            code: "NOT_FOUND",
+                        })
+                    }
+
+                    // We also need to find the transactions where this account is the destination
+                    const transactions = await prisma.cryptoTransaction.findMany({
+                        where: {
+                            OR: [
+                                {source_account: cryptoAccount.account_id},
+                                {destination_account: cryptoAccount.account_id},
+                            ],
+                        },
+                    });
+                    // We can't mutate the object, so we create a new one
+                    const newCryptoAccount = {
+                        ...cryptoAccount,
+                        transactions: transactions,
+                    }
+                    return {account: newCryptoAccount};
                 case "fiat":
                     const fiatAccount = await prisma.fiatAccount.findUnique({
                         where: {id: input._id},
@@ -163,10 +189,29 @@ export const appRouter = router({
                             name: true,
                             currency: true,
                             balance: true,
-                            transactions: true,
                         }
                     });
-                    return {account: fiatAccount};
+                    if (!fiatAccount) {
+                        throw new TRPCError({
+                            message: "Account not found",
+                            code: "NOT_FOUND",
+                        })
+                    }
+
+                    // We also need to find the transactions where this account is the destination
+                    const transactionsFiat = await prisma.fiatTransaction.findMany({
+                        where: {
+                            OR: [
+                                {source_account: fiatAccount.account_id},
+                                {destination_account: fiatAccount.account_id},
+                            ],
+                        }});
+                    // We can't mutate the object, so we create a new one
+                    const newFiatAccount = {
+                        ...fiatAccount,
+                        transactions: transactionsFiat,
+                    }
+                    return {account: newFiatAccount};
             }
         }),
 
@@ -335,7 +380,7 @@ export const appRouter = router({
                 }
             });
 
-            if (!User) { new TRPCError({ code: "INTERNAL_SERVER_ERROR" }); return; }
+            if (!User) { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" }) }
 
             let totalValue = 0;
 
@@ -457,24 +502,24 @@ export const appRouter = router({
                 where: { account_id: destination_account_id }
             });
 
-            if (!source || !destination) { new TRPCError({ code: "BAD_REQUEST" }); return; }
+            if (!source || !destination) { throw new TRPCError({ code: "BAD_REQUEST" }) }
 
             // Check if initiator is the owner of the source account
-            if (source.parent_id !== user?.id) { new TRPCError({ code: "BAD_REQUEST" }); return; }
+            if (source.parent_id !== user?.id) { throw new TRPCError({ code: "BAD_REQUEST" }) }
 
             // Check if source account has enough balance
-            if (source.balance < amount) { new TRPCError({ code: "BAD_REQUEST", message:"Not enough balance." }); return; }
+            if (source.balance < amount) { throw new TRPCError({ code: "BAD_REQUEST", message:"Not enough balance." }) }
 
             // Check if source and destination accounts are of the same type
-            if (source.type !== destination.type) { new TRPCError({ code: "BAD_REQUEST" }); return; }
+            if (source.type !== destination.type) { throw new TRPCError({ code: "BAD_REQUEST" }) }
 
             // Check if source and destination accounts are of the same currency
             // TODO: Add support for cross-currency transfers
-            if (source.currency !== destination.currency) { new TRPCError({ code: "INTERNAL_SERVER_ERROR" }); return; }
+            if (source.currency !== destination.currency) { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" }) }
 
             const source_query = {
                 where: {
-                    id: source_account_id,
+                    account_id: source_account_id,
                 },
                 data: {
                     balance: {
@@ -485,7 +530,7 @@ export const appRouter = router({
 
             const destination_query = {
                 where: {
-                    id: destination_account_id,
+                    account_id: destination_account_id,
                 },
                 data: {
                     balance: {
@@ -502,7 +547,7 @@ export const appRouter = router({
                     destination_account: destination_account_id,
                     currency: source.currency,
                     type: "Transfer",
-                    parent_account_id: source.account_id,
+                    parent_account_id: source.id,
                     date: new Date(),
                 }
             }
@@ -519,6 +564,36 @@ export const appRouter = router({
             }
 
             return {success: true};
+        }),
+
+    tryGetReceiverName: procedure
+        .input(z.object({
+            account_id: z.string(),
+        }))
+        .mutation( async ({ input, ctx }) => {
+            const {prisma} = ctx;
+            const {account_id} = input;
+
+            const account = await prisma.cryptoAccount.findUnique({
+                where: { account_id: account_id }
+            }) || await prisma.fiatAccount.findUnique({
+                where: { account_id: account_id }
+            });
+
+            if (!account) { return {receiver: ""} }
+
+            const receiver = await prisma.masterAccount.findUnique({
+                where: { id: account.parent_id },
+                select: {
+                    name: true,
+                    surname: true,
+                }
+            });
+
+            if (!receiver) { return {receiver: ""} }
+
+            // We will return the name like "Ja**** Do****"
+            return {receiver: receiver.name[0] + receiver.name[1] + "**** " + receiver.surname[0] + receiver.surname[1] + "****"};
         }),
 });
 

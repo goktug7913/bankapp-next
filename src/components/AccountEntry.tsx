@@ -14,6 +14,7 @@ import Grid2 from "@mui/material/Unstable_Grid2";
 import {ICryptoAccount, IFiatAccount} from "@/model/UserModels";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {trpc} from "@/utils/trpc";
+import {useRouter} from "next/router";
 
 export interface AccountEntryProps {
     m_id: string
@@ -34,6 +35,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
     });
 
     const qc = trpc.useContext();
+    const router = useRouter();
 
     const [expanded, setExpanded] = useState(false);
     const [accState, setAccState] = useState(AccountQuery.data?.account);
@@ -69,7 +71,8 @@ export const AccountEntry = (props:AccountEntryProps) => {
     }
 
     const handleSendRequest = () => {
-        alert("Send request not implemented yet");
+        // Redirect to send money page with account id
+        router.push("/sendMoney?account=" + accState?.account_id).then();
     }
 
     const handleHistoryRequest = () => {
@@ -146,7 +149,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
                                     <Typography >{transaction.type}</Typography>
                                     <Stack direction={"row"} gap={2}>
                                         <Typography >{parseDate(transaction.date)}</Typography>
-                                        <Typography color={transaction.amount>0 ? "green" : "red"}>{transaction.amount + " " + transaction.currency}</Typography>
+                                        <Typography color={transaction.source_account===accState.account_id ? "red" : "green"}>{transaction.amount + " " + transaction.currency}</Typography>
                                     </Stack>
                                 </Stack>
                             )

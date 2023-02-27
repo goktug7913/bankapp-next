@@ -15,10 +15,11 @@ interface User {
 }
 
 export function createContext(opts: CreateNextContextOptions) {
-
     const prisma = new PrismaClient();
     const { req, res } = opts;
 
+    //TODO: Auth should be handled by a middleware, we're basically protecting the whole API with this
+    // That's why we're checking for the login and register routes here
     const auth = req.headers.authorization;
     let user:User = {id: "", iat: 0, exp: 0};
 

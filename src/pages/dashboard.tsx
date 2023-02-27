@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 
 import {
     Button,
@@ -25,7 +25,6 @@ import {AccountEntry} from "@/components/AccountEntry";
 
 import {useRouter} from "next/router";
 import {trpc} from "@/utils/trpc";
-import SendMoney from "@/components/sendMoney";
 
 export default function Dashboard() {
     const UserContext = useContext(UserCtx).user;

@@ -27,6 +27,7 @@ type Props = {
 };
 
 export const UserProvider: React.FC<Props> = ({children}) => {
+    // TODO: We might change this to NextAuth
     const [user, setUser] = React.useState<UserAccountInterface>({
         token: "",
         account_id: '',

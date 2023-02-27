@@ -3,17 +3,16 @@ import {
     Alert,
     Box,
     Button,
-    Checkbox, CircularProgress,
+    CircularProgress,
     Container,
     Fade,
-    FormControlLabel,
     FormLabel, TextField
 } from "@mui/material";
 
 import Link from "next/link";
 import {useRouter} from "next/router";
 import {UserCtx} from "@/context/UserState";
-import {trpc, setAuthToken} from "@/utils/trpc";
+import {trpc} from "@/utils/trpc";
 import dynamic from "next/dynamic";
 
 function Login() {
