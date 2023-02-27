@@ -86,11 +86,9 @@ export const AccountEntry = (props:AccountEntryProps) => {
             month: 'numeric',
             day: 'numeric',
             hour: 'numeric',
-            minute: 'numeric'
-        }
-        // Find user's locale
-        const locale = navigator.language;
-
+            minute: 'numeric',
+        } as Intl.DateTimeFormatOptions;
+        const locale = navigator.language; // Find user's locale
         return d.toLocaleString(locale, opt);
     }
 
