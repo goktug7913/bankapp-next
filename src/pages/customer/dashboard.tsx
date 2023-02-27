@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 
 import {
     Button,
@@ -28,13 +28,13 @@ import {trpc} from "@/utils/trpc";
 
 export default function Dashboard() {
 
-    const UserContext = useContext(UserCtx).user;
     const router = useRouter();
+    const UserContext = useContext(UserCtx).user;
 
     // Redirect to login if we are signed out for some reason, or was never signed in.
-    if (!UserContext.token) {
-        router.push("/login").then();
-    }
+    useEffect(() => {
+        if (!UserContext.token) { router.push("/login").then() }
+    }, [UserContext.token]);
 
     const TotalAssetValue = trpc.getTotalValue.useQuery({ display_currency: "USD" }, { refetchOnWindowFocus: "always" });
     const CryptoQuery = trpc.getSubAccounts.useQuery({ type: "crypto" });
