@@ -102,12 +102,12 @@ export default function Dashboard() {
             <Divider sx={{my: 3}}/>
 
             <Box sx={{}}>
-                <Stack direction="row" gap={1} style={{justifyContent:""}}>
+                <Stack direction="row" gap={1} style={{justifyContent: largeScreen ? "" : "space-between"}}>
                     <Typography variant="h6" sx={{}}>Stocks Portfolio</Typography>
                     <Button variant="outlined" color="success" sx={{}}>Buy Stocks</Button>
                 </Stack>
 
-                <Accordion sx={{maxWidth:largeScreen ? 320 : 320, minWidth:largeScreen ? 320 : 320}}>
+                <Accordion sx={{maxWidth:largeScreen ? 320 : 320, minWidth:largeScreen ? 320 : 320, mt:2}}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                         <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%"}}>
                             <Grid2 container spacing={1}>

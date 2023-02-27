@@ -70,7 +70,7 @@ export default function CreateAccount() {
     useEffect(() => {
         if (createFiat.isSuccess) {
             console.log("Success");
-            router.push("/dashboard");
+            router.push("/customer/dashboard");
         } else if (createFiat.error) {
             console.log(createFiat.error);
         } else {
@@ -80,8 +80,7 @@ export default function CreateAccount() {
 
     useEffect(() => {
         if (createCrypto.isSuccess) {
-            console.log("Success");
-            router.push("/dashboard");
+            router.push("/customer/dashboard");
         } else if (createCrypto.error) {
             console.log(createCrypto.error);
         } else {

@@ -32,7 +32,7 @@ export default function Register()
             console.log(data);
             user.setUser(data.user as any);
 
-            router.replace("/dashboard").then();
+            router.replace("/customer/dashboard").then();
         },
         onError: (err) => {
             setError(err.message);

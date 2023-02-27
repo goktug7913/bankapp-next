@@ -88,7 +88,6 @@ export default function SendMoney( {sender_account}: IInitialProps) {
     }
 
     function TryGetReceiverName(e: any) {
-        console.log("TryGetReceiverName: " + receiverAccount);
         ReceiverMutate.mutate({
             account_id: receiverAccount
         });
@@ -142,7 +141,7 @@ export default function SendMoney( {sender_account}: IInitialProps) {
             </Box>
 
             <Box sx={{ pt:2 }}>
-                <TextField required type={"number"} disabled={SendMutate.isLoading} fullWidth label="Amount" value={amount} onChange={(e) => setAmount(e.target.value)}
+                <TextField required type={"number"} disabled={SendMutate.isLoading} fullWidth label="Amount" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value))}
                     InputProps={{
                         endAdornment: <InputAdornment position={"end"}>{selectedAccount?.currency}</InputAdornment>
                     }}
@@ -154,7 +153,7 @@ export default function SendMoney( {sender_account}: IInitialProps) {
             </Box>
 
             <Alert sx={{mt:2}} severity={"info"}>
-                <Stack direction={"row"} gap={2}>
+                <Stack direction={"row"} gap={1}>
                     Sending to: {ReceiverMutate.isLoading ? <Skeleton variant={"text"} width={100} /> : receiverName}
                 </Stack>
             </Alert>

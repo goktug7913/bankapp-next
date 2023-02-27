@@ -106,10 +106,11 @@ enum OperationType {
 }
 
 model Currency {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
   name   String
   ticker String
   type   String
+  symbol String?
 }
 
 enum CurrencyType {

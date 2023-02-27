@@ -28,8 +28,8 @@ function Navbar() {
 
                     <Link href={"/"}><Image src={logo} alt={"logo"} width={largeScreen ? 135:70} height={largeScreen ? 35:15}/></Link>
                     <div style={{flexGrow:1}}/>
-                    {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/dashboard">Dashboard</Button> : null}
-                    {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/settings">Settings</Button> : null}
+                    {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/customer/dashboard">Dashboard</Button> : null}
+                    {UserContext.user.account_id ? <Button LinkComponent={Link} color="primary" href="/customer/settings">Settings</Button> : null}
                     {UserContext.user.account_id ? null : <Button LinkComponent={Link} color="primary" href="/login">Login</Button>}
                     {UserContext.user.account_id ? <Button LinkComponent={Link} color="error" href="/logout">Logout</Button> : <Button LinkComponent={Link} color="primary" href="/register">Register</Button>}
                     {UserContext.user.account_id&&largeScreen ? <Typography variant="body1" sx={{ml:1}}>{UserContext.user.name + " " + UserContext.user.surname}</Typography> : null}

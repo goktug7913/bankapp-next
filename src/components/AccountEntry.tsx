@@ -81,7 +81,17 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     const parseDate = (date: any) => {
         const d = new Date(date);
-        return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+        const opt = {
+            year: "2-digit",
+            month: 'numeric',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric'
+        }
+        // Find user's locale
+        const locale = navigator.language;
+
+        return d.toLocaleString(locale, opt);
     }
 
     const CalculateTransactionPages = () => {
@@ -107,8 +117,8 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     return (
         <Accordion TransitionProps={{ unmountOnExit: true }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%"}}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon/>} sx={{ml:0,pl:0}}>
+                <Box sx={{display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%"}}>
                     <Typography>
                         <Grid2 container spacing={1}>
                             <Grid2><AccountBalanceWalletIcon sx={{fontSize: 24}} /></Grid2>
@@ -117,7 +127,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
                     </Typography>
 
                     {AccountQuery.isFetching ? <Skeleton variant="text" width={40} /> : <Typography>{accState?.balance + " " + accState?.currency}</Typography>}
-                </div>
+                </Box>
             </AccordionSummary>
 
             <AccordionDetails >
@@ -139,9 +149,9 @@ export const AccountEntry = (props:AccountEntryProps) => {
                         }</Typography>
                     </AccordionSummary>
 
-                    <AccordionDetails>
+                    <AccordionDetails sx={{px:0}}>
                         <Box sx={{width:"maxWidth"}}>
-                            <Pagination count={CalculateTransactionPages()} showFirstButton showLastButton size={"small"} onChange={(event: React.ChangeEvent<unknown>, page: number) => {setPage(page);}}/>
+                            <Pagination count={CalculateTransactionPages()} showFirstButton showLastButton size={"small"} onChange={(event: React.ChangeEvent<unknown>, page: number) => {setPage(page)}} />
 
                             {accState?.transactions?.length ? accState?.transactions?.slice(page*10-10,page*10).map( // Check if the slice is correct
                                 (transaction) => (

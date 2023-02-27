@@ -21,7 +21,7 @@ function Login() {
     const UserContext = useContext(UserCtx);
     // If the user is already logged in, let's redirect them to the dashboard
     if (!UserContext.user) {
-        //router.push("/dashboard");
+        //router.push("/customer/dashboard");
     }
 
     const [user, setUser] = useState({account_id: "", password: ""});
@@ -31,9 +31,8 @@ function Login() {
     const Login = trpc.login.useMutation({
         onSuccess: (data) => {
             UserContext.setUser(data.user as any); // TODO: Fix user Interface
-            console.log("Success");
 
-            router.push("/dashboard").then();
+            router.push("/customer/dashboard").then();
         },
         onError: (err) => {
             setError(err.message);
