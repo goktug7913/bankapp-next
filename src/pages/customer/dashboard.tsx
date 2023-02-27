@@ -27,25 +27,26 @@ import {useRouter} from "next/router";
 import {trpc} from "@/utils/trpc";
 
 export default function Dashboard() {
+
     const UserContext = useContext(UserCtx).user;
     const router = useRouter();
 
-    function CreateNewAccount() {
-        // Redirect to creation page
-        router.push("/createAccount").then();
+    // Redirect to login if we are signed out for some reason, or was never signed in.
+    if (!UserContext.token) {
+        router.push("/login").then();
     }
 
-    // Let's update the user context on page load
-    // This is to make sure that the user context is up-to-date
-    const UserData = trpc.getMasterAccount.useQuery();
-    const TotalAssetValue = trpc.getTotalValue.useQuery({ display_currency: "USD" }, {
-        refetchOnWindowFocus: "always",
-    });
+    const TotalAssetValue = trpc.getTotalValue.useQuery({ display_currency: "USD" }, { refetchOnWindowFocus: "always" });
     const CryptoQuery = trpc.getSubAccounts.useQuery({ type: "crypto" });
     const FiatQuery = trpc.getSubAccounts.useQuery({ type: "fiat" });
 
     const theme = useTheme();
     const largeScreen = useMediaQuery(theme.breakpoints.up('md'));
+
+    function CreateNewAccount() {
+        // Redirect to creation page
+        router.push("/createAccount").then();
+    }
 
     return(
         <Box sx={{mt:3, mx:3}}>

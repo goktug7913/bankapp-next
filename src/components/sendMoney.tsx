@@ -1,7 +1,7 @@
 import {
     Alert,
     Box,
-    Button, Divider,
+    Button, Container, Divider,
     FormControl, InputAdornment,
     InputLabel,
     MenuItem,
@@ -97,8 +97,21 @@ export default function SendMoney( {sender_account}: IInitialProps) {
      router.back();
     }
 
+    if (SendMutate.isSuccess) {
+        return (
+            <Container maxWidth={"sm"} sx={{mt:2}}>
+                <Typography variant="h5">Transfer</Typography>
+                <Divider sx={{ my: 2, mb:3 }} />
+                <Alert severity={"success"}>Transfer successful</Alert>
+                <Stack direction="row" spacing={2} sx={{ pt:2 }}>
+                    <Button variant="outlined" color={"success"} onClick={cancel}>Ok</Button>
+                </Stack>
+            </Container>
+        )
+    }
+
     return (
-        <Box sx={{ p:2 }}>
+        <Container maxWidth={"sm"} sx={{mt:2}}>
             <Typography variant="h5">Transfer</Typography>
             <Divider sx={{ my: 2, mb:3 }} />
             <Box>
@@ -164,6 +177,6 @@ export default function SendMoney( {sender_account}: IInitialProps) {
                 <Button variant="outlined" color={"success"} onClick={sendMoney} disabled={SendMutate.isLoading}>Send</Button>
                 <Button variant="outlined" color={"error"} onClick={cancel}>Cancel</Button>
             </Stack>
-        </Box>
+        </Container>
     )
 }

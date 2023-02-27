@@ -8,21 +8,22 @@ datasource db {
 }
 
 model MasterAccount {
-  id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  account_id      String          @unique
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  account_id      String           @unique
   name            String
   surname         String
-  email           String          @unique
+  email           String           @unique
   password        String?
   crypto_accounts CryptoAccount[]
   fiat_accounts   FiatAccount[]
   operations      Operation[]
-  token           String?         @unique @default("")
-  token_expire    DateTime?       @db.Date
-  createdAt       DateTime?       @default(now()) @db.Date
-  updatedAt       DateTime?       @updatedAt @db.Date
-  is_active       Boolean?        @default(true)
+  token           String?          @unique @default("")
+  token_expire    DateTime?        @db.Date
+  createdAt       DateTime?        @default(now()) @db.Date
+  updatedAt       DateTime?        @updatedAt @db.Date
+  is_active       Boolean?         @default(true)
   preferences     UserPreferences
+  StockPortfolio  StockPortfolio[]
 }
 
 model CryptoAccount {
@@ -116,6 +117,63 @@ model Currency {
 enum CurrencyType {
   FIAT
   CRYPTO
+}
+
+model StockPortfolio {
+  id           String             @id @default(auto()) @map("_id") @db.ObjectId
+  account_id   String             @unique
+  parent       MasterAccount      @relation(fields: [parent_id], references: [id])
+  parent_id    String             @db.ObjectId
+  stocks       CustomerStock[]
+  transactions StockTransaction[]
+  is_active    Boolean            @default(true)
+  type         String             @default("stock")
+}
+
+type CustomerStock {
+  ticker String
+  amount Int
+}
+
+type StockModel {
+  name                String
+  description         String
+  ticker              String
+  price               Float // In USD
+  hasDividend         Boolean              @default(false)
+  dividendRate        Float?               @default(0)
+  dividendPeriod      StockDividendPeriod? @default(QUARTERLY)
+  dividendLastPaid    DateTime?            @db.Date
+  dividendNextPayment DateTime?            @db.Date
+  type                StockType
+}
+
+enum StockDividendPeriod {
+  QUARTERLY
+  MONTHLY
+  YEARLY
+}
+
+model StockTransaction {
+  id                  String         @id @default(auto()) @map("_id") @db.ObjectId
+  parent_account      StockPortfolio @relation(fields: [parent_account_id], references: [id])
+  parent_account_id   String         @db.ObjectId
+  amount              Int
+  currency            String
+  date                DateTime       @db.Date
+  description         String
+  source_account      String
+  destination_account String
+  type                String
+}
+
+// We're aggregating a lot here, so we don't have a hard time when querying
+enum StockType {
+  STOCK
+  BOND
+  FUND
+  ETF
+  INDEX
 }
 
 model internal_logs {

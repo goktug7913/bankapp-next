@@ -1,9 +1,5 @@
 import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary, Box, Button, Pagination, Skeleton,
-    Stack,
-    Typography
+    Accordion, AccordionDetails, AccordionSummary, Box, Button, Modal, Pagination, Skeleton, Stack, Typography
 } from "@mui/material";
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -11,10 +7,12 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 import React, {useEffect, useState} from "react";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import {ICryptoAccount, IFiatAccount} from "@/model/UserModels";
+import {ICryptoAccount, IFiatAccount} from "@/model/UserModels"; // TODO: We have Prisma, get rid of this
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {trpc} from "@/utils/trpc";
 import {useRouter} from "next/router";
+import {style} from "@mui/system";
+import TxDetailsModal from "@/components/TxDetailsModal";
 
 export interface AccountEntryProps {
     m_id: string
@@ -26,6 +24,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
         enabled: props.m_id !== "",
         onSuccess: (data) => {
             // Order transactions by date
+            // We might be able to do this in the backend, but the way we query the data is a bit weird
             data.account?.transactions?.sort((a, b) => {
                 return new Date(b.date).getTime() - new Date(a.date).getTime();
             });
@@ -37,10 +36,12 @@ export const AccountEntry = (props:AccountEntryProps) => {
     const qc = trpc.useContext();
     const router = useRouter();
 
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(false); // We do not have a purpose for this yet
     const [accState, setAccState] = useState(AccountQuery.data?.account);
     const [page, setPage] = useState(1);
     const [processing, setProcessing] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [modalData, setModalData] = useState(accState?.transactions?.[0]);
 
     const FaucetRequest = trpc.faucet.useMutation({
         onSuccess: (data) => {
@@ -75,9 +76,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
         router.push("/sendMoney?account=" + accState?.account_id).then();
     }
 
-    const handleHistoryRequest = () => {
-        alert("History request not implemented yet");
-    }
+    const handleHistoryRequest = () => { alert("History request not implemented yet") }
 
     const parseDate = (date: any) => {
         const d = new Date(date);
@@ -110,6 +109,10 @@ export const AccountEntry = (props:AccountEntryProps) => {
     useEffect(() => {
         FillPages();
     }, [accState?.transactions]);
+
+    function onClose() {
+        setModalOpen(false);
+    }
 
     const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
 
@@ -153,7 +156,9 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
                             {accState?.transactions?.length ? accState?.transactions?.slice(page*10-10,page*10).map( // Check if the slice is correct
                                 (transaction) => (
-                                <Stack key={transaction.id} direction="row" gap={2} sx={{m:0.5, justifyContent:"space-between"}}>
+                                <Stack key={transaction.id} direction="row" gap={2} sx={{m:0.5, justifyContent:"space-between", cursor:"pointer", ":hover": {backgroundColor: "rgba(0,0,0,0.3)"}} }
+                                       onClick={ () => { setModalData(transaction); setModalOpen(true) }}
+                                >
                                     <Typography >{transaction.type}</Typography>
                                     <Stack direction={"row"} gap={2}>
                                         <Typography >{parseDate(transaction.date)}</Typography>
@@ -167,6 +172,17 @@ export const AccountEntry = (props:AccountEntryProps) => {
                 </Accordion>
 
             </AccordionDetails>
+
+            <Modal
+                open={modalOpen}
+                onClose={onClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+                <TxDetailsModal tx={modalData} open={modalOpen} onClose={onClose} />
+            </Modal>
+
         </Accordion>
     );
 }
