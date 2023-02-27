@@ -103,7 +103,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
     const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
 
     return (
-        <Accordion sx={{maxWidth:largeScreen ? 600 : 1200, minWidth:largeScreen ? 400 : 300}} TransitionProps={{ unmountOnExit: true }}>
+        <Accordion TransitionProps={{ unmountOnExit: true }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                 <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%"}}>
                     <Typography>
@@ -120,7 +120,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
             <AccordionDetails >
                 <Typography sx={{mx:0.5, mb:1}}>Account Number: {accState?.account_id}</Typography>
 
-                <Stack direction="row" gap={2} sx={{m:0.5}}>
+                <Stack direction="row" gap={1} sx={{m:0.5}}>
                     <Button disabled={processing} variant="outlined" color={"primary"} onClick={handleSendRequest}>Send</Button>
                     <Button disabled={processing} variant="outlined" color={"secondary"} onClick={handleHistoryRequest}>History</Button>
                     <Button disabled={processing} variant="outlined" color={"success"} onClick={handleFaucetRequest}>Test Faucet</Button>

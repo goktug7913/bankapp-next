@@ -68,9 +68,9 @@ export default function Dashboard() {
 
             <Divider sx={{my: 3}}/>
 
-            <Stack direction={largeScreen?"row":"column"} gap={3}>
-                <Box sx={{}}>
-                    <Stack direction="column" gap={1} sx={{}}>
+            <Grid2 container gap={0} spacing={3} rowSpacing={0}>
+                <Grid2 xs={12} sm={6} md={6}>
+                    <Stack direction="column" gap={1}>
                         <Stack direction="row" gap={1} style={{justifyContent:"space-between"}}>
                             <Typography variant="h6">Fiat accounts</Typography>
                             <Button variant="outlined" className="create" onClick={CreateNewAccount}>New Account</Button>
@@ -82,12 +82,10 @@ export default function Dashboard() {
                             })}
                         </List>
                     </Stack>
-                </Box>
+                </Grid2>
 
-                <Divider orientation={largeScreen ? "vertical":"horizontal"} flexItem />
-
-                <Box sx={{}}>
-                    <Stack direction="column" gap={1} sx={{}}>
+                <Grid2 xs={12} sm={6} md={6}>
+                    <Stack direction="column" gap={1}>
                         <Stack direction="row" gap={1} style={{justifyContent:"space-between"}}>
                             <Typography variant="h6">Crypto accounts</Typography>
                             <Button variant="outlined" className="create" onClick={CreateNewAccount}>New Account</Button>
@@ -99,8 +97,8 @@ export default function Dashboard() {
                             })}
                         </List>
                     </Stack>
-                </Box>
-            </Stack>
+                </Grid2>
+            </Grid2>
 
             <Divider sx={{my: 3}}/>
 
