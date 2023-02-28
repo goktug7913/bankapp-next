@@ -35,7 +35,9 @@ export default function Register()
             router.replace("/customer/dashboard").then();
         },
         onError: (err) => {
-            setError(err.message);
+            const msg = JSON.parse(err.message);
+            const errors = msg.map((e: any) => e.message);
+            setError(errors.join());
         }
     });
 

@@ -11,7 +11,6 @@ import {ICryptoAccount, IFiatAccount} from "@/model/UserModels"; // TODO: We hav
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {trpc} from "@/utils/trpc";
 import {useRouter} from "next/router";
-import {style} from "@mui/system";
 import TxDetailsModal from "@/components/TxDetailsModal";
 
 export interface AccountEntryProps {
@@ -20,6 +19,18 @@ export interface AccountEntryProps {
     onAccountChange: (account: IFiatAccount | ICryptoAccount) => void;
 }
 export const AccountEntry = (props:AccountEntryProps) => {
+    const qc = trpc.useContext();
+    const router = useRouter();
+
+    const PrefferedCurrencyMutation = trpc.convertToDisplayCurrency.useMutation({
+        onSuccess: (data) => {
+
+        },
+        onError: (err) => {
+            console.log("Preffered currency error: ",err);
+        }
+    });
+
     const AccountQuery = trpc.getSubAccount.useQuery({ _id: props.m_id, type: props.type}, {
         enabled: props.m_id !== "",
         onSuccess: (data) => {
@@ -29,12 +40,13 @@ export const AccountEntry = (props:AccountEntryProps) => {
                 return new Date(b.date).getTime() - new Date(a.date).getTime();
             });
             setAccState(data.account)
+
+            PrefferedCurrencyMutation.mutate({
+                base_currency:accState?.currency as string,
+                amount: accState?.balance as number });
         },
         refetchOnWindowFocus: "always",
     });
-
-    const qc = trpc.useContext();
-    const router = useRouter();
 
     const [expanded, setExpanded] = useState(false); // We do not have a purpose for this yet
     const [accState, setAccState] = useState(AccountQuery.data?.account);
@@ -127,7 +139,17 @@ export const AccountEntry = (props:AccountEntryProps) => {
                         </Grid2>
                     </Typography>
 
-                    {AccountQuery.isFetching ? <Skeleton variant="text" width={40} /> : <Typography>{accState?.balance + " " + accState?.currency}</Typography>}
+                    {AccountQuery.isFetching ? <Skeleton variant="text" width={40} />
+                        :
+                        <Stack direction={"row"} gap={2}>
+                            {!PrefferedCurrencyMutation.isLoading && <Typography variant={"caption"} color={"darkgray"}>
+                                ≈{PrefferedCurrencyMutation?.data?.amount + "$"}
+                            </Typography>}
+                            <Typography>
+                                {accState?.balance + " " + accState?.currency}
+                            </Typography>
+                        </Stack>}
+
                 </Box>
             </AccordionSummary>
 

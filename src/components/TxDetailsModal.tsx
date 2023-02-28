@@ -1,5 +1,5 @@
 import React from 'react';
-import {Box, Container, Divider, IconButton, InputLabel, MenuItem, Paper, Typography} from '@mui/material';
+import {Container, Divider, Paper, Typography} from '@mui/material';
 
 
 interface ITxDetailsModalProps {

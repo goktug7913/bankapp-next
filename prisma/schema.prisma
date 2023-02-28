@@ -23,7 +23,7 @@ model MasterAccount {
   updatedAt       DateTime?        @updatedAt @db.Date
   is_active       Boolean?         @default(true)
   preferences     UserPreferences
-  StockPortfolio  StockPortfolio[]
+  stockPortfolio  StockPortfolio[]
 }
 
 model CryptoAccount {
@@ -120,32 +120,38 @@ enum CurrencyType {
 }
 
 model StockPortfolio {
-  id           String             @id @default(auto()) @map("_id") @db.ObjectId
-  account_id   String             @unique
-  parent       MasterAccount      @relation(fields: [parent_id], references: [id])
-  parent_id    String             @db.ObjectId
-  stocks       CustomerStock[]
-  transactions StockTransaction[]
-  is_active    Boolean            @default(true)
-  type         String             @default("stock")
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  account_id    String             @unique
+  parent        MasterAccount      @relation(fields: [parent_id], references: [id])
+  parent_id     String             @unique @db.ObjectId
+  transactions  StockTransaction[]
+  is_active     Boolean            @default(true)
+  type          String             @default("stock")
+  CustomerStock CustomerStock[]
 }
 
-type CustomerStock {
-  ticker String
-  amount Int
+model CustomerStock {
+  id       String         @id @default(auto()) @map("_id") @db.ObjectId
+  owner    StockPortfolio @relation(fields: [owner_id], references: [id])
+  owner_id String         @db.ObjectId
+  stock    Stocks         @relation(fields: [stock_id], references: [id])
+  stock_id String         @db.ObjectId
+  amount   Int            @default(0)
 }
 
-type StockModel {
+model Stocks {
+  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
   name                String
   description         String
   ticker              String
-  price               Float // In USD
+  price               Float                // In USD
   hasDividend         Boolean              @default(false)
   dividendRate        Float?               @default(0)
   dividendPeriod      StockDividendPeriod? @default(QUARTERLY)
   dividendLastPaid    DateTime?            @db.Date
   dividendNextPayment DateTime?            @db.Date
   type                StockType
+  CustomerStock       CustomerStock[]
 }
 
 enum StockDividendPeriod {

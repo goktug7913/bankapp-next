@@ -4,6 +4,13 @@ import * as process from "process";
 import {OperationType} from "@prisma/client";
 import {TRPCError} from "@trpc/server";
 
+interface CoinAPIResponse {
+    // CoinAPI response Type
+    time: string;
+    asset_id_base: string;
+    asset_id_quote: string;
+    rate: number;
+}
 
 // This is the main application router.
 // Subrouters reside in their own files in this folder.
@@ -54,11 +61,39 @@ export const appRouter = router({
 
     register: procedure
         .input(z.object({
-            account_id: z.string().length(11),
-            name: z.string().min(2).max(64),
-            surname: z.string().min(2).max(64),
-            email: z.string().email(),
-            password: z.string().min(8).max(64),
+            account_id: z.string({
+                description: "The account ID",
+                invalid_type_error: "The account ID must be a string",
+                required_error: "The account ID is required",
+                }).trim().length(11, "The account ID must be 11 characters long").regex(new RegExp("^[0-9]*$"), "The account ID must be a number"),
+            name: z.string(
+                {
+                    description: "The name",
+                    invalid_type_error: "The name must be a string",
+                    required_error: "The name is required",
+                }
+            ).min(2, "Name must be longer than 2 characters.").max(64, "Name must be shorter than 64 characters."),
+            surname: z.string(
+                {
+                    description: "The surname",
+                    invalid_type_error: "The surname must be a string",
+                    required_error: "The surname is required",
+                }
+            ).min(2, "Surname must be longer than 2 characters.").max(64, "Surname must be shorter than 64 characters."),
+            email: z.string(
+                {
+                    description: "The email",
+                    invalid_type_error: "The email must be a string",
+                    required_error: "The email is required",
+                }
+            ).email("The email must be a valid email address"),
+            password: z.string(
+                {
+                    description: "The password",
+                    invalid_type_error: "The password must be a string",
+                    required_error: "The password is required",
+                }
+            ).min(8, "Password must be at least 8 characters.").max(64, "Password must be shorter than 64 characters."),
         })).mutation( async ({input, ctx}) => {
             const {prisma, bcrypt, jwt} = ctx;
 
@@ -75,7 +110,7 @@ export const appRouter = router({
                     operations: {
                         create: { type: OperationType.CREATE_ACCOUNT },
                     },
-                    preferences: {}, // Hopefully assigns default values
+                    preferences: {},
                 },
             });
 
@@ -364,6 +399,46 @@ export const appRouter = router({
             return await prisma.currency.findMany();
         }),
 
+    convertToDisplayCurrency: procedure
+        .input(z.object({
+            base_currency: z.string(),
+            amount: z.number(),
+        })).mutation( async ({ input, ctx }) => {
+            // We should have a token in ctx that we can use to get the user's display currency
+            const {prisma, user} = ctx;
+            const {base_currency, amount} = input;
+
+            // Get the user's display currency
+            if (!user) { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" }) }
+
+            const User = await prisma.masterAccount.findUnique({
+                where: {id: user?.id},
+                select: {
+                    preferences: { select: { currency: true } }
+                }
+            });
+
+            if (!User) { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" }) }
+
+            const display_currency = User.preferences.currency;
+
+            // If the base currency is the same as the display currency, we don't need to convert
+            if (base_currency === display_currency) { return {amount: amount} }
+
+            // Get the conversion rate
+            const response = await fetch(`https://rest.coinapi.io/v1/exchangerate/${base_currency}/${display_currency}`, {
+                "method": 'GET',
+                "headers": {'X-CoinAPI-Key': '590DABAB-8285-4822-A43E-ED85789A98B8'}
+            });
+            const data: CoinAPIResponse = await response.json();
+            const conversion_rate = data.rate;
+
+            // Convert the amount
+            const converted_amount = amount * conversion_rate;
+            // We should round the amount to 2 decimal places
+            return {amount: converted_amount.toFixed(2)};
+        }),
+
     getTotalValue: procedure
         .input(z.object({
             display_currency: z.string(),
@@ -383,14 +458,6 @@ export const appRouter = router({
             if (!User) { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" }) }
 
             let totalValue = 0;
-
-            interface CoinAPIResponse {
-                // CoinAPI response Type
-                time: string;
-                asset_id_base: string;
-                asset_id_quote: string;
-                rate: number;
-            }
 
             // Convert all crypto balances to display currency
             for (let i = 0; i < User.crypto_accounts.length; i++) {
@@ -415,7 +482,7 @@ export const appRouter = router({
                             time: "2021-05-01T00:00:00.0000000Z",
                             asset_id_base: "BTC",
                             asset_id_quote: "USD",
-                            rate: 24000.0
+                            rate: 23500.0
                         }
                     }
                 }
@@ -594,6 +661,19 @@ export const appRouter = router({
 
             // We will return the name like "Ja**** Do****"
             return {receiver: receiver.name[0] + receiver.name[1] + "**** " + receiver.surname[0] + receiver.surname[1] + "****"};
+        }),
+
+    getStocksPortfolio: procedure
+        .query( async ({ ctx }) => {
+            const {prisma, user} = ctx;
+
+            const stocksPortfolio = await prisma.stockPortfolio.findUnique({
+               where: { parent_id: user?.id }
+            });
+
+            if (!stocksPortfolio) { throw new TRPCError({ code: "BAD_REQUEST" }) }
+
+            return stocksPortfolio;
         }),
 });
 

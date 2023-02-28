@@ -7,14 +7,10 @@ import {
     Typography,
     Divider,
     Box,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails, Tooltip, IconButton
+    Tooltip, IconButton
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import InventoryIcon from '@mui/icons-material/Inventory';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -25,6 +21,7 @@ import {AccountEntry} from "@/components/AccountEntry";
 
 import {useRouter} from "next/router";
 import {trpc} from "@/utils/trpc";
+import StocksDash from "@/components/StocksDash";
 
 export default function Dashboard() {
 
@@ -56,7 +53,7 @@ export default function Dashboard() {
 
                 <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
                     <Typography variant="h6">
-                        Total Asset Value: {TotalAssetValue.isLoading ? "Loading..." : TotalAssetValue.data?.totalValue + "$"}
+                        Total Asset Value: {TotalAssetValue.isLoading ? "Loading..." : TotalAssetValue.data?.totalValue.toLocaleString() + "$"}
                     </Typography>
 
                     <Tooltip title="This shows total value of all your assets, but I hit the free exchange rate API limits, so currently it calculates random rates. :(">
@@ -102,38 +99,7 @@ export default function Dashboard() {
 
             <Divider sx={{my: 3}}/>
 
-            <Box sx={{}}>
-                <Stack direction="row" gap={1} style={{justifyContent: largeScreen ? "" : "space-between"}}>
-                    <Typography variant="h6" sx={{}}>Stocks Portfolio</Typography>
-                    <Button variant="outlined" color="success" sx={{}}>Buy Stocks</Button>
-                </Stack>
-
-                <Accordion sx={{maxWidth:largeScreen ? 320 : 320, minWidth:largeScreen ? 320 : 320, mt:2}}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                        <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%"}}>
-                            <Grid2 container spacing={1}>
-                                <Grid2><InventoryIcon sx={{fontSize: 24}} /></Grid2>
-                                <Grid2>Sample stock SMPL</Grid2>
-                            </Grid2>
-
-                            <Typography>120$</Typography>
-                        </div>
-                    </AccordionSummary>
-
-                    <AccordionDetails>
-                        <Stack direction="row" gap={1} sx={{}}>
-                            <Stack direction="column" gap={1} sx={{}}>
-                                <Typography>Cost average: 4.45$</Typography>
-                                <Typography>Quantity: 12</Typography>
-                                <Typography>Current price: 10.00$</Typography>
-                            </Stack>
-                            <Divider orientation="vertical" flexItem />
-                            <Button variant="outlined" color="error" sx={{mt: 3}}>Sell</Button>
-                        </Stack>
-                    </AccordionDetails>
-                </Accordion>
-
-            </Box>
+            <StocksDash />
 
             <Divider sx={{my: 3}}/>
 
