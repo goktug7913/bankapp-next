@@ -104,6 +104,11 @@ enum OperationType {
   DEACTIVATE_ACCOUNT
   DEACTIVATE_CRYPTO_ACCOUNT
   DEACTIVATE_FIAT_ACCOUNT
+
+  CREATE_STOCKS_ACCOUNT
+  CLOSE_STOCKS_ACCOUNT
+  ACTIVATE_STOCKS_ACCOUNT
+  DEACTIVATE_STOCKS_ACCOUNT
 }
 
 model Currency {
@@ -142,9 +147,9 @@ model CustomerStock {
 model Stocks {
   id                  String               @id @default(auto()) @map("_id") @db.ObjectId
   name                String
-  description         String
-  ticker              String
-  price               Float                // In USD
+  description         String?              @default("") // We can have empty descriptions, lazy me
+  ticker              String               @unique // We can't have two stocks with the same ticker
+  price               Float // In USD, IMPORTANT
   hasDividend         Boolean              @default(false)
   dividendRate        Float?               @default(0)
   dividendPeriod      StockDividendPeriod? @default(QUARTERLY)
@@ -161,16 +166,21 @@ enum StockDividendPeriod {
 }
 
 model StockTransaction {
-  id                  String         @id @default(auto()) @map("_id") @db.ObjectId
-  parent_account      StockPortfolio @relation(fields: [parent_account_id], references: [id])
-  parent_account_id   String         @db.ObjectId
-  amount              Int
-  currency            String
-  date                DateTime       @db.Date
-  description         String
-  source_account      String
-  destination_account String
-  type                String
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  parent_account    StockPortfolio @relation(fields: [parent_account_id], references: [id])
+  parent_account_id String         @db.ObjectId
+  ticker            String // Should this be a relation?
+  amount            Int
+  currency          String
+  date              DateTime       @db.Date
+  description       String
+  type              String
+}
+
+enum StockTransactionType {
+  BUY
+  SELL
+  DIVIDEND
 }
 
 // We're aggregating a lot here, so we don't have a hard time when querying
@@ -182,11 +192,12 @@ enum StockType {
   INDEX
 }
 
+// Haven't used this so far, but I'm keeping it here just in case...
 model internal_logs {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  v         Int      @map("__v")
   type      LogType  @default(INFO)
   message   String   @default("")
+  details   String?  @default("")
   createdAt DateTime @default(now()) @db.Date
   updatedAt DateTime @updatedAt @db.Date
 }

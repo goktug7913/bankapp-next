@@ -1,21 +1,64 @@
 import {z} from 'zod';
 import {procedure, router} from '../trpc';
 import * as process from "process";
-import {OperationType} from "@prisma/client";
+import {OperationType, StockDividendPeriod, StockTransaction, StockType} from "@prisma/client"; // TODO: Check the enum export bug!
 import {TRPCError} from "@trpc/server";
+import { randomUUID } from 'crypto'; // I guess we're using crypto now. 🤷‍♂️
 
 interface CoinAPIResponse {
-    // CoinAPI response Type
     time: string;
     asset_id_base: string;
     asset_id_quote: string;
     rate: number;
 }
 
-// This is the main application router.
-// Subrouters reside in their own files in this folder.
-export const appRouter = router({
+/*
+    THE BIG TODO LIST
+    - Some of these are here for future reference, or they're things that would exist in a real world application.
+    
+    - We're getting an _id for the MasterAccount from the context, which is verified by the JWT.
+    Maybe we should encode more information in the JWT, or the whole MasterAccount object, so we don't have to query the DB for it.
+    Actually, we could start building reusable middlewares for this at this point. A lot of the procedures share the same logic.
+    The pattern is starting to emerge as I'm adding more and more procedures.
 
+    - CoinAPI has a limit of 100 reqs/day. This is really hurting the development progress, we have following options:
+        - We could cache the results in a hashmap for all the currencies we support. This is kind of complicated though.
+        - Paid plans are not an option, we're not making any money. 🤣
+        - The best option is probably to use a unlimited or high limit API.
+        - I should look into exchange API's and other well known websites which provide this data and see if they have an API.
+        - Another idea is to cache on a USD index, then calculate from there! Read: https://www.exchangerate-api.com/docs/free
+
+    - We need refresh tokens, and a way to revoke them. Customers are getting invalidated after 1 hour right now.
+
+    - We're manually throwing tRPC errors when prisma returns null, today I've seen that there's variants of the query methods
+    called xxxOrThrow, maybe we can use those and get rid of the if statements. I'm not sure how they work though.
+
+    - We need to implement the "forgot password" feature. 🤦‍♂️
+
+    - We need to implement the "change password" feature, frontend has the UI for it in the settings page. (Ugly though)
+
+    - The way we're querying Fiat and Crypto accounts is not very efficient. We should probably use a union type for the accounts.
+    The frontend also invalidates them a lot, and even the unchanged accounts are invalidated. This is causing bad UX and unnecessary traffic.
+
+    - A notification system would be nice. We could use websockets for this, but we can't do that with the current setup on Vercel.
+    I'm thinking of two options:
+        - We could use a polling mechanism, where the frontend polls the server every 5 seconds or so. This is not ideal, but it's easy.
+        - We could hook into change streams from frontend directly, but this looks a bit janky and insecure.
+        
+    - I'd like mailing but most likely the people who want to check this app out would not want to receive emails from me.
+
+    - 2FA to show off my abilities? 🤔
+    - Why am I using a database? I could just use a JSON file. 🤔
+    - Why am I talking to myself? In a plural form? 🤔
+    - We don't need a full stack app, why don't we use WordPress? 🤔
+    - I hope tsc purges the comments from the compiled code. (It does, but I'm still paranoid.) (Right?)
+*/
+
+// This is the main application router.
+// Subrouters reside in their own files in this folder. (Spoiler: we don't have any 🤡)
+
+export const appRouter = router({
+           
     login: procedure
         .input(
             z.object({
@@ -668,14 +711,285 @@ export const appRouter = router({
             const {prisma, user} = ctx;
 
             const stocksPortfolio = await prisma.stockPortfolio.findUnique({
-               where: { parent_id: user?.id }
+               where: { parent_id: user?.id },
+               select: {
+                    CustomerStock: true,
+               }
             });
 
-            if (!stocksPortfolio) { throw new TRPCError({ code: "BAD_REQUEST" }) }
+            if (!stocksPortfolio) {
+                // Customer doesn't have a stocks portfolio yet, create one
+                const portfolio = await prisma.stockPortfolio.create({
+                    data: {
+                        parent_id: user?.id,
+                        account_id: randomUUID(),
+                    },
+                    select: {
+                        CustomerStock: true,
+                    }
+                });
+
+                // Create operation log for the portfolio we just created
+                await prisma.operation.create({
+                    data: {
+                        masteraccount_id: user?.id,
+                        type: OperationType.CREATE_STOCKS_ACCOUNT,
+                    }
+                });
+                
+                return portfolio;
+            }
 
             return stocksPortfolio;
         }),
-});
+
+        getOwnedStockData: procedure
+        .input(z.object({
+            id: z.string(),
+        }))
+        .query( async ({ input, ctx }) => {
+            const {prisma, user} = ctx;
+            const {id} = input;
+
+            const stock = await prisma.stocks.findUnique({
+                where: { id: id }
+            });
+
+            if (!stock) { throw new TRPCError({ code: "BAD_REQUEST" }) }
+
+            return stock;
+        }),
+
+        buyStock: procedure
+        .input(z.object({
+            symbol: z.string(),
+            amount: z.number().positive().int(),
+            paymentAccount: z.string(),
+            paymentAccountType: z.string(), // This is needed to differentiate between crypto and fiat accounts
+            // Which is becoming a problem, we should probably change the schema. TODO: Research union types
+        }))
+        .mutation( async ({ input, ctx }) => {
+            const {prisma, user} = ctx;
+            const {symbol, amount} = input;
+
+            // Get the stocks portfolio
+            const portfolio = await prisma.stockPortfolio.findUnique({
+                where: { parent_id: user?.id },
+            });
+
+            if (!portfolio) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+
+            // We need to calculate the total price of the stocks we are buying
+            const stock = await prisma.stocks.findFirst({
+                where: { ticker: symbol },
+            });
+
+            if (!stock) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+
+            const total_price = amount * stock.price;
+            let accountToUse;
+
+            // Check if the user has enough money in the payment account
+            switch (input.paymentAccountType) {
+                case "crypto":
+                    const crypto_account = await prisma.cryptoAccount.findUnique({
+                        where: { account_id: input.paymentAccount },
+                    });
+
+                    if (!crypto_account) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+
+                    if (crypto_account.balance < total_price) { throw new TRPCError({ code: "BAD_REQUEST", message: "Not enough balance." }) }
+
+                    // We're not mutating balance here, we're just checking if the user has enough money
+                    // So if we fail a check, we don't need to rollback anything. Easy.
+                    accountToUse = crypto_account;
+                    break;
+                case "fiat":
+                    const fiat_account = await prisma.fiatAccount.findUnique({
+                        where: { account_id: input.paymentAccount },
+                    });
+
+                    if (!fiat_account) { throw new TRPCError({ code: "BAD_REQUEST" }) }
+
+                    if (fiat_account.balance < total_price) { throw new TRPCError({ code: "BAD_REQUEST", message: "Not enough balance." }) }                    // We're not mutating balance here, we're just checking if the user has enough money
+
+                    accountToUse = fiat_account;
+                    break;
+                default:
+                    throw new TRPCError({ code: "BAD_REQUEST" }) // This should never happen anyway
+            }
+
+            // This might happen if the user has multiple tabs open and buys the same stock in both tabs,
+            // or sends a handcrafted request. We don't want to allow this obviously.
+            // There might be awesome patterns to solve this problem, but I'm not aware of them sadly :(
+            if (!accountToUse) { throw new TRPCError({ code: "BAD_REQUEST" }) }
+
+            // At this point we know that the user has enough money in the payment account
+            // We can now create the transaction and update the balance of the payment account
+            // We also need to create a new customer stock if the user doesn't already own it
+
+            // The prices in the database are in USD, so we need to convert the total price to account currency
+            // But I can't find a non-rate-limited API to do this, so I'm just going to use a hardcoded value
+            accountToUse.balance -= total_price;
+
+            // We need to create a new customer stock if the user doesn't already own it
+            const customer_stock = await prisma.customerStock.findFirst({
+                where: {
+                    stock: { ticker: symbol }, // nice, this works, "stock" is the name of the relation.
+                }
+            });
+
+            if (customer_stock) {
+                // The user already owns this stock, we just need to update the amount
+                customer_stock.amount += amount;
+            } else {
+                // The user doesn't own this stock yet, we need to create a new one
+                await prisma.customerStock.create({
+                    data: {
+                        amount: amount,
+                        stock: { connect: { ticker: symbol } },
+                        owner: { connect: { id: portfolio.id } },
+                    },
+                });
+
+                // Create a transaction log for the stock we just bought
+                // These stocks transactions are messy right now, we need to clean them up
+                await prisma.stockTransaction.create({
+                    data: {
+                        parent_account: { connect: { account_id: portfolio.account_id } },
+                        ticker: symbol,
+                        type: "BUY", // For some reason prisma does not export the proper enum type???
+                        amount: amount,
+                        currency: "USD", // TODO: Convert to account currency
+                        description: `Bought ${amount} ${symbol} stocks.`,
+                        date: new Date(), // Mongo should set this automatically, might be redundant
+                    }
+                });
+
+                // We should be done now, return success
+                return { success: true };
+            }
+        }),
+
+        sellStock: procedure
+        .input(z.object({
+            symbol: z.string(),
+            amount: z.number().positive().int(),
+            paymentAccount: z.string(),
+            paymentAccountType: z.string(), // This is needed to differentiate between crypto and fiat accounts
+            // Which is becoming a problem, we should probably change the schema. TODO: Research union types
+        }))
+        .mutation( async ({ input, ctx }) => {
+            const {prisma, user} = ctx;
+            const {symbol, amount} = input;
+
+            // Get the stocks portfolio
+            const portfolio = await prisma.stockPortfolio.findUnique({
+                where: { parent_id: user?.id },
+            });
+
+            if (!portfolio) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+
+            // We need to calculate the total price of the stocks we are selling
+            const stock = await prisma.stocks.findFirst({
+                where: { ticker: symbol },
+            });
+
+            if (!stock) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+
+            const total_price = amount * stock.price;
+            let accountToUse;
+
+            switch (input.paymentAccountType) {
+                case "crypto":
+                    const crypto_account = await prisma.cryptoAccount.findUnique({
+                        where: { account_id: input.paymentAccount },
+                    });
+
+                    if (!crypto_account) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+
+                    accountToUse = crypto_account;
+                    break;
+                case "fiat":
+                    const fiat_account = await prisma.fiatAccount.findUnique({
+                        where: { account_id: input.paymentAccount },
+                    });
+
+                    if (!fiat_account) { throw new TRPCError({ code: "BAD_REQUEST" }) }
+
+                    accountToUse = fiat_account;
+                    break;
+                default:
+                    await prisma.internal_logs.create({
+                        data: {
+                            message: `User ${user?.id} tried to sell stocks with an invalid payment account type: ${input.paymentAccountType}`,
+                            type: "ERROR" 
+                        }
+                    });
+                    throw new TRPCError({ code: "BAD_REQUEST" }) // This should never happen anyway
+            }
+
+            // This might happen if the user has multiple tabs open and buys the same stock in both tabs,
+            // or sends a handcrafted request. We don't want to allow this obviously.
+            // There might be awesome patterns to solve this problem, but I'm not aware of them sadly :(
+            if (!accountToUse) { throw new TRPCError({ code: "BAD_REQUEST" }) }
+
+            // At this point we know that the user has enough money in the payment account
+            // We can now create the transaction and update the balance of the payment account
+            // We also need to create a new customer stock if the user doesn't already own it
+
+            // The prices in the database are in USD, so we need to convert the total price to account currency
+            // But I can't find a non-rate-limited API to do this, so I'm just going to use a hardcoded value
+            accountToUse.balance += total_price;
+
+            // The stock we are selling should already exist in the database, if it doesn't, something is wrong
+            const customer_stock = await prisma.customerStock.findFirst({
+                where: {
+                    stock: { ticker: symbol }, // nice, this works, "stock" is the name of the relation.
+                }
+            });
+
+            // If the user doesn't own this stock, we can't sell it. Possible reasons:
+            // - The user has multiple tabs open and sells the same stock in both tabs
+            // - The user sends a handcrafted request
+            // - The user has a bug in their code, silly me.
+            // We don't want to allow any of these things, so we throw an error and log this internally
+            if (!customer_stock) { 
+                // Log this error internally
+                await prisma.internal_logs.create({
+                    data: {
+                        type: "ERROR",
+                        message: `User ${user?.id} tried to sell ${amount} ${symbol} stocks, but they don't own any.`,
+                        details: `This action should never be possible, the user should not be able to send a request to sell stocks they don't own.`,
+                    }
+                });
+
+                throw new TRPCError({ code: "BAD_REQUEST" })
+            }
+
+            // The user owns this stock, we can sell it
+            customer_stock.amount -= amount;
+
+            // If the user sold all of their stocks, we can delete the customer stock
+            if (customer_stock.amount <= 0) {
+                await prisma.customerStock.delete({
+                    where: { id: customer_stock.id },
+                });
+            }
+        }),
+
+        getAllTradedStocks: procedure
+        .query( async ({ ctx }) => {
+            const {prisma} = ctx;
+
+            const stocks = await prisma.stocks.findMany();
+            // Could do other stuff here, like sorting the stocks by price or something.
+            return stocks;
+        }),
+
+        // <-- Procedures (Janky tooltip comment)
+    }
+);
 
 // export type definition of API
 export type AppRouter = typeof appRouter;
