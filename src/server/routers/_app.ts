@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {procedure, router} from '../trpc';
 import * as process from "process";
-import {OperationType, StockDividendPeriod, StockTransaction, StockType} from "@prisma/client"; // TODO: Check the enum export bug!
+import {OperationType, StockDividendPeriod, StockTransaction, StockType, StockTransactionType } from "@prisma/client"; // TODO: Check the enum export bug!
 import {TRPCError} from "@trpc/server";
 import { randomUUID } from 'crypto'; // I guess we're using crypto now. 🤷‍♂️
 
