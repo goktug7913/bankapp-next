@@ -149,7 +149,7 @@ model Stocks {
   name                String
   description         String?              @default("") // We can have empty descriptions, lazy me
   ticker              String               @unique // We can't have two stocks with the same ticker
-  price               Float // In USD, IMPORTANT
+  price               Float                // In USD, IMPORTANT
   hasDividend         Boolean              @default(false)
   dividendRate        Float?               @default(0)
   dividendPeriod      StockDividendPeriod? @default(QUARTERLY)
@@ -166,15 +166,15 @@ enum StockDividendPeriod {
 }
 
 model StockTransaction {
-  id                String         @id @default(auto()) @map("_id") @db.ObjectId
-  parent_account    StockPortfolio @relation(fields: [parent_account_id], references: [id])
-  parent_account_id String         @db.ObjectId
-  ticker            String // Should this be a relation?
+  id                String               @id @default(auto()) @map("_id") @db.ObjectId
+  parent_account    StockPortfolio       @relation(fields: [parent_account_id], references: [id])
+  parent_account_id String               @db.ObjectId
+  ticker            String               // Should this be a relation?
   amount            Int
   currency          String
-  date              DateTime       @db.Date
+  date              DateTime             @db.Date
   description       String
-  type              String
+  type              StockTransactionType
 }
 
 enum StockTransactionType {

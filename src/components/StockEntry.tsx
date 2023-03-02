@@ -5,7 +5,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import React from "react";
 import {useTheme} from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import {Stocks,CustomerStock} from "@prisma/client"
+import {CustomerStock} from "@prisma/client"
 import {trpc} from "@/utils/trpc";
 
 interface StockEntryProps {

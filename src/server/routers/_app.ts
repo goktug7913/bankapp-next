@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {procedure, router} from '../trpc';
 import * as process from "process";
-import {OperationType, StockDividendPeriod, StockTransaction, StockType, StockTransactionType } from "@prisma/client"; // TODO: Check the enum export bug!
+import {OperationType, StockTransactionType} from "@prisma/client"; // TODO: Check the enum export bug!
 import {TRPCError} from "@trpc/server";
 import { randomUUID } from 'crypto'; // I guess we're using crypto now. 🤷‍♂️
 
@@ -54,9 +54,9 @@ interface CoinAPIResponse {
     - I hope tsc purges the comments from the compiled code. (It does, but I'm still paranoid.) (Right?)
 */
 
+
 // This is the main application router.
 // Subrouters reside in their own files in this folder. (Spoiler: we don't have any 🤡)
-
 export const appRouter = router({
            
     login: procedure
@@ -321,8 +321,8 @@ export const appRouter = router({
 
             let newAccount = await prisma.fiatAccount.create({
                 data: {
-                    account_id: Math.random().toString(),
-                    parent_id: user.id, // TODO: Temporary solution until we set middleware
+                    account_id: randomUUID(),
+                    parent_id: user.id,
                     name: input.name,
                     currency: input.currency_ticker,
                     balance: 0,
@@ -349,8 +349,8 @@ export const appRouter = router({
 
             let newAccount = await prisma.cryptoAccount.create({
                 data: {
-                    account_id: Math.random().toString(),
-                    parent_id: user.id, // TODO: Temporary solution until we set middleware
+                    account_id: randomUUID(),
+                    parent_id: user.id,
                     name: input.name,
                     currency: input.currency_ticker,
                     balance: 0,
@@ -748,7 +748,7 @@ export const appRouter = router({
             id: z.string(),
         }))
         .query( async ({ input, ctx }) => {
-            const {prisma, user} = ctx;
+            const {prisma} = ctx;
             const {id} = input;
 
             const stock = await prisma.stocks.findUnique({
@@ -762,8 +762,10 @@ export const appRouter = router({
 
         buyStock: procedure
         .input(z.object({
-            symbol: z.string(),
-            amount: z.number().positive().int(),
+            stocks: z.array(z.object({
+                symbol: z.string(),
+                amount: z.number().int().min(1).positive(),
+            })),
             paymentAccount: z.string(),
             paymentAccountType: z.string(), // This is needed to differentiate between crypto and fiat accounts
             // Which is becoming a problem, we should probably change the schema. TODO: Research union types
@@ -811,8 +813,8 @@ export const appRouter = router({
 
                     if (!fiat_account) { throw new TRPCError({ code: "BAD_REQUEST" }) }
 
-                    if (fiat_account.balance < total_price) { throw new TRPCError({ code: "BAD_REQUEST", message: "Not enough balance." }) }                    // We're not mutating balance here, we're just checking if the user has enough money
-
+                    if (fiat_account.balance < total_price) { throw new TRPCError({ code: "BAD_REQUEST", message: "Not enough balance." }) }
+                    // We're not mutating balance here, we're just checking if the user has enough money
                     accountToUse = fiat_account;
                     break;
                 default:
@@ -820,7 +822,7 @@ export const appRouter = router({
             }
 
             // This might happen if the user has multiple tabs open and buys the same stock in both tabs,
-            // or sends a handcrafted request. We don't want to allow this obviously.
+            // or sends a handcrafted request. We don't want to allow this, obviously.
             // There might be awesome patterns to solve this problem, but I'm not aware of them sadly :(
             if (!accountToUse) { throw new TRPCError({ code: "BAD_REQUEST" }) }
 
@@ -858,7 +860,7 @@ export const appRouter = router({
                     data: {
                         parent_account: { connect: { account_id: portfolio.account_id } },
                         ticker: symbol,
-                        type: "BUY", // For some reason prisma does not export the proper enum type???
+                        type: StockTransactionType.BUY,
                         amount: amount,
                         currency: "USD", // TODO: Convert to account currency
                         description: `Bought ${amount} ${symbol} stocks.`,
@@ -930,7 +932,7 @@ export const appRouter = router({
             }
 
             // This might happen if the user has multiple tabs open and buys the same stock in both tabs,
-            // or sends a handcrafted request. We don't want to allow this obviously.
+            // or sends a handcrafted request. We don't want to allow this, obviously.
             // There might be awesome patterns to solve this problem, but I'm not aware of them sadly :(
             if (!accountToUse) { throw new TRPCError({ code: "BAD_REQUEST" }) }
 
@@ -976,6 +978,23 @@ export const appRouter = router({
                     where: { id: customer_stock.id },
                 });
             }
+
+            // Create a transaction log for the stock we just sold
+            // These stocks transactions are messy right now, we need to clean them up
+            await prisma.stockTransaction.create({
+                data: {
+                    parent_account: { connect: { account_id: portfolio.account_id } },
+                    ticker: symbol,
+                    type: StockTransactionType.SELL,
+                    amount: amount,
+                    currency: "USD", // TODO: Convert to account currency
+                    description: `Sold ${amount} ${symbol} stocks.`,
+                    date: new Date(), // Mongo should set this automatically, might be redundant
+                }
+            });
+
+            // We should be done now, return success
+            return { success: true };
         }),
 
         getAllTradedStocks: procedure

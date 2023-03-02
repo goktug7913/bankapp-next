@@ -156,25 +156,25 @@ export default function BuyStock() {
                                                 return;
                                             }
                                             if (basket[stock?.ticker]) {
-                                                setBasket({...basket,[stock?.ticker]: {...basket[stock.ticker],amount: parseInt(e.target.value)}
+                                                setBasket({...basket,[stock?.ticker]: {...basket[stock?.ticker],amount: parseInt(e.target.value)}
                                                 })
                                             } else {
-                                                setBasket({...basket,[stock.ticker]: {stock: [stock], amount: parseInt(e.target.value)}})
+                                                setBasket({...basket,[stock?.ticker]: {stock: [stock], amount: parseInt(e.target.value)}})
                                             }
                                         }}
                                     />
 
                                     
                                     <Button variant="outlined" color="error"
-                                        disabled={basket[stock.ticker]?.amount === 0}
+                                        disabled={basket[stock?.ticker]?.amount === 0}
                                         onClick={() => {
-                                            if (basket[stock.ticker]) {
-                                                if (basket[stock.ticker].amount > 1) {
-                                                    setBasket({...basket,[stock.ticker]: {...basket[stock.ticker],amount: basket[stock.ticker].amount - 1}
+                                            if (basket[stock?.ticker]) {
+                                                if (basket[stock?.ticker].amount > 1) {
+                                                    setBasket({...basket,[stock?.ticker]: {...basket[stock?.ticker],amount: basket[stock?.ticker].amount - 1}
                                                     })
                                                 } else {
                                                     const newBasket = { ...basket };
-                                                    delete newBasket[stock.ticker];
+                                                    delete newBasket[stock?.ticker];
                                                     setBasket(newBasket);
                                                 }
                                             }
