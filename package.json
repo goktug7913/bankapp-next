@@ -13,21 +13,18 @@
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.11.9",
     "@mui/material": "^5.11.9",
-    "@next/font": "13.1.6",
+    "@next/font": "13.2.3",
     "@prisma/client": "^4.11.0",
     "@tanstack/react-query": "^4.24.6",
     "@trpc/client": "^10.11.1",
     "@trpc/next": "^10.11.1",
     "@trpc/react-query": "^10.11.1",
     "@trpc/server": "^10.11.1",
-    "@types/node": "18.13.0",
-    "@types/react": "18.0.28",
-    "@types/react-dom": "18.0.11",
     "bcryptjs": "^2.4.3",
-    "eslint": "8.34.0",
-    "eslint-config-next": "13.1.6",
+    "eslint": "8.35.0",
+    "eslint-config-next": "13.2.3",
     "jsonwebtoken": "^9.0.0",
-    "next": "13.1.6",
+    "next": "13.2.3",
     "prisma": "^4.10.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -36,6 +33,9 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
-    "@types/jsonwebtoken": "^9.0.1"
+    "@types/jsonwebtoken": "^9.0.1",
+    "@types/node": "18.14.5",
+    "@types/react": "18.0.28",
+    "@types/react-dom": "18.0.11"
   }
 }

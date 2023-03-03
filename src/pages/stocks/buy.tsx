@@ -3,6 +3,7 @@ import {trpc} from "@/utils/trpc";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Grid2 from "@mui/material/Unstable_Grid2/";
+import { Stocks } from "@prisma/client";
 
 export default function BuyStock() {
 
@@ -11,7 +12,7 @@ export default function BuyStock() {
     }
     
     interface  IBasketEntry {
-        stock: typeof AllStocksQuery.data[];
+        stock: Stocks[];
         amount: number;
     }
 
