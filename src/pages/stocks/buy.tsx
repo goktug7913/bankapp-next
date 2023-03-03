@@ -151,6 +151,8 @@ export default function BuyStock() {
                                     <Typography variant="body2">{stock?.price}$</Typography>
                                 </Stack>
 
+                                {/* <Typography variant="caption">{stock?.description}</Typography> */}
+
                                 <Stack direction={"row"} justifyContent={"space-between"} sx={{pt:1}}>
                                     <Typography variant="caption">Total</Typography>
                                     <Typography variant="caption">

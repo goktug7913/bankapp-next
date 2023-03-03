@@ -30,8 +30,10 @@ export default function StockEntry({dataIn, setTotalValue}: StockEntryProps) {
 
     // Let's not render at all while we're loading
     if (StockQuery.isLoading) return null;
-    const data = StockQuery.data;
 
+    const data = StockQuery.data;
+    if (!data) return null;
+    
     return (
         <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
