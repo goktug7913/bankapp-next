@@ -31,9 +31,9 @@ export default function BuyStock() {
     const [selectedAccount, setSelectedAccount] = useState(Accounts.data?.accounts[0]);
     const [basket, setBasket] = useState<IBasket>({});
     const [searchString, setSearchString] = useState<string>("");
-    const [filteredStocks, setFilteredStocks] = useState<typeof AllStocksQuery.data[]>([]);
+    const [filteredStocks, setFilteredStocks] = useState<Stocks[]>([]);
 
-    const stocks = searchString === "" ? AllStocksQuery.data : filteredStocks;
+    const stocks:Stocks[] = searchString === "" ? AllStocksQuery.data as Stocks[] : filteredStocks;
 
     useEffect(() => {
         if (AllStocksQuery.isSuccess && searchString !== "") {
@@ -42,7 +42,7 @@ export default function BuyStock() {
             });
             setFilteredStocks(filteredStocks as any);
         }
-    }, [searchString]);
+    }, [AllStocksQuery.data, AllStocksQuery.isSuccess, searchString]);
 
     function handleBuy() {
         const stocks = Object.values(basket);
@@ -63,7 +63,7 @@ export default function BuyStock() {
         BuyStock.mutate({ ...data }, {
             onSuccess: () => {
                 alert("Stocks bought!");
-                Accounts.refetch(); // Temporarily refetch accounts to update balance
+                Accounts.refetch().then(); // Temporarily refetch accounts to update balance
             }
         });
     }
