@@ -43,8 +43,39 @@ export default function BuyStock() {
         }
     }, [searchString]);
 
+    function handleBuy() {
+        const stocks = Object.values(basket);
+
+        const data = {
+            paymentAccount: selectedAccount?.account_id as string,
+            paymentAccountType: "fiat",
+            stocks: stocks.map((stock) => {
+                return {
+                    symbol: stock.stock[0]?.ticker,
+                    amount: stock.amount,
+                }
+            })
+        }
+
+        console.log(data);
+
+        BuyStock.mutate({ ...data }, {
+            onSuccess: () => {
+                alert("Stocks bought!");
+                Accounts.refetch(); // Temporarily refetch accounts to update balance
+            }
+        });
+    }
+
     return (
         <Container maxWidth={"md"} sx={{mt:2}}>
+            {
+                BuyStock.isError && (
+                    <Paper sx={{p: 2, mb: 2}}>
+                        <Typography color="error">{BuyStock.error.message}</Typography>
+                    </Paper>
+                )
+            }
             <Typography variant="h5">Buy Stock</Typography>
 
             <Divider sx={{ my: 2, mb:3 }} />
@@ -210,12 +241,7 @@ export default function BuyStock() {
                     })}
                 </Grid2>
                 <Button variant="outlined" color="success" fullWidth
-                    onClick={() => { BuyStock.mutate({
-                    symbol: "AAPL", // Dummy symbol
-                    amount: 1, 
-                    paymentAccount:selectedAccount?.id as string, // We should remove casting here
-                    paymentAccountType: "fiat"
-                    }) }}
+                    onClick={handleBuy}
                 >
                     Buy
                 </Button>

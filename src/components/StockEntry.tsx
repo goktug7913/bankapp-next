@@ -42,7 +42,7 @@ export default function StockEntry({dataIn, setTotalValue}: StockEntryProps) {
                         <Grid2>{data?.name}</Grid2>
                     </Grid2>
 
-                    <Typography>{data?.price}$</Typography>
+                    <Typography>{(data?.price * dataIn.amount).toLocaleString()}$</Typography>
                 </div>
             </AccordionSummary>
 

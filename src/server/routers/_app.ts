@@ -772,7 +772,7 @@ export const appRouter = router({
         }))
         .mutation( async ({ input, ctx }) => {
             const {prisma, user} = ctx;
-            const {symbol, amount} = input;
+            const {stocks, paymentAccount, paymentAccountType} = input;
 
             // Get the stocks portfolio
             const portfolio = await prisma.stockPortfolio.findUnique({
@@ -782,13 +782,17 @@ export const appRouter = router({
             if (!portfolio) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
 
             // We need to calculate the total price of the stocks we are buying
-            const stock = await prisma.stocks.findFirst({
-                where: { ticker: symbol },
-            });
+            let total_price = 0;
+            for (const stock of stocks) {
+                const stock_data = await prisma.stocks.findUnique({
+                    where: { ticker: stock.symbol },
+                });
 
-            if (!stock) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+                if (!stock_data) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
 
-            const total_price = amount * stock.price;
+                total_price += stock_data.price * stock.amount;
+            }
+            
             let accountToUse;
 
             // Check if the user has enough money in the payment account
@@ -826,51 +830,67 @@ export const appRouter = router({
             // There might be awesome patterns to solve this problem, but I'm not aware of them sadly :(
             if (!accountToUse) { throw new TRPCError({ code: "BAD_REQUEST" }) }
 
-            // At this point we know that the user has enough money in the payment account
-            // We can now create the transaction and update the balance of the payment account
-            // We also need to create a new customer stock if the user doesn't already own it
-
             // The prices in the database are in USD, so we need to convert the total price to account currency
             // But I can't find a non-rate-limited API to do this, so I'm just going to use a hardcoded value
             accountToUse.balance -= total_price;
 
             // We need to create a new customer stock if the user doesn't already own it
-            const customer_stock = await prisma.customerStock.findFirst({
-                where: {
-                    stock: { ticker: symbol }, // nice, this works, "stock" is the name of the relation.
-                }
-            });
-
-            if (customer_stock) {
-                // The user already owns this stock, we just need to update the amount
-                customer_stock.amount += amount;
-            } else {
-                // The user doesn't own this stock yet, we need to create a new one
-                await prisma.customerStock.create({
-                    data: {
-                        amount: amount,
-                        stock: { connect: { ticker: symbol } },
-                        owner: { connect: { id: portfolio.id } },
-                    },
+            // Otherwise we just need to update the amount
+            stocks.forEach(async (stock) => {
+                const stock_data = await prisma.stocks.findUnique({
+                    where: { ticker: stock.symbol },
                 });
 
-                // Create a transaction log for the stock we just bought
-                // These stocks transactions are messy right now, we need to clean them up
-                await prisma.stockTransaction.create({
-                    data: {
-                        parent_account: { connect: { account_id: portfolio.account_id } },
-                        ticker: symbol,
-                        type: StockTransactionType.BUY,
-                        amount: amount,
-                        currency: "USD", // TODO: Convert to account currency
-                        description: `Bought ${amount} ${symbol} stocks.`,
-                        date: new Date(), // Mongo should set this automatically, might be redundant
+                if (!stock_data) { throw new TRPCError({ code: "BAD_REQUEST" }) } // This should never happen anyway
+
+                const customer_stock = await prisma.customerStock.findFirst({
+                    where: {
+                        owner_id: portfolio.id,
+                        stock: stock_data,    
                     }
                 });
 
-                // We should be done now, return success
-                return { success: true };
+                if (!customer_stock) {
+                    // Create a new customer stock
+                    await prisma.customerStock.create({
+                        data: {
+                            owner_id: portfolio.id,
+                            amount: stock.amount,
+                            stock_id: stock_data.id,
+                        }
+                    });
+                } else {
+                    // Update the amount of the customer stock
+                    await prisma.customerStock.update({
+                        where: { id: customer_stock.id },
+                        data: { amount: customer_stock.amount + stock.amount }
+                    });
+                }
+            });
+
+            // Update the balance of the account we're using
+            switch (input.paymentAccountType) {
+                case "crypto":
+                    await prisma.cryptoAccount.update({
+                        where: { account_id: input.paymentAccount },
+                        data: { balance: accountToUse.balance }
+                    });
+                    break;
+                case "fiat":
+                    await prisma.fiatAccount.update({
+                        where: { account_id: input.paymentAccount },
+                        data: { balance: accountToUse.balance }
+                    });
+                    break;
+                default:
+                    throw new TRPCError({ code: "BAD_REQUEST" }) // This should never happen anyway
             }
+
+            console.log("Buying stocks", stocks);
+            console.log("Total price", total_price);
+            console.log("Payment account", paymentAccount);
+
+            return { success: true };
         }),
 
         sellStock: procedure
