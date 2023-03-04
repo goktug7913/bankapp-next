@@ -74,6 +74,14 @@ export const appRouter = router({
             const user = await prisma.masterAccount.findUnique({
                 where: {
                     account_id: account_id,
+                },
+                include: {
+                    crypto_accounts: true,
+                    fiat_accounts: true,
+                    stockPortfolio: {
+                        include: { CustomerStock: true }
+                    },
+                    operations: true,
                 }
             });
 
@@ -81,7 +89,7 @@ export const appRouter = router({
                 console.log("user not found");
                 throw new TRPCError({ code: "NOT_FOUND" });
             }
-
+            
             if (bcrypt.compareSync(password, user.password as string)) {
                 // Passwords match
                 // Let's refresh the token
@@ -714,7 +722,8 @@ export const appRouter = router({
                where: { parent_id: user?.id },
                select: {
                     CustomerStock: true,
-               }
+               },
+
             });
 
             if (!stocksPortfolio) {

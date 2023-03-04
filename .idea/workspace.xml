@@ -6,7 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="2700b055-2c13-41a8-baca-18900d841cb8" name="Changes" comment="dashboard login guard fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/AccountEntry.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/AccountEntry.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pages/stocks/buy.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/stocks/buy.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/styles/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/styles/globals.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +92,8 @@
       <workItem from="1677460174018" duration="25172000" />
       <workItem from="1677628475656" duration="15000" />
       <workItem from="1677840630991" duration="1398000" />
-      <workItem from="1677842603775" duration="1066000" />
+      <workItem from="1677842603775" duration="4110000" />
+      <workItem from="1677869077515" duration="53000" />
     </task>
     <task id="LOCAL-00001" summary="a lot going on...">
       <created>1676613577099</created>

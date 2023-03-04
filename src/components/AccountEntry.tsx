@@ -146,7 +146,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
                                 ≈{PrefferedCurrencyMutation?.data?.amount + "$"}
                             </Typography>}
                             <Typography>
-                                {accState?.balance + " " + accState?.currency}
+                                {accState?.balance.toLocaleString() + " " + accState?.currency}
                             </Typography>
                         </Stack>}
 

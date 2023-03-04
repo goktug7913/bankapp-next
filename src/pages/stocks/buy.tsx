@@ -103,7 +103,7 @@ export default function BuyStock() {
                                         </Stack>
 
                                         <Stack direction="row" spacing={1}>
-                                            <Typography>{c.balance}</Typography>
+                                            <Typography>{c.balance.toLocaleString()}</Typography>
                                             <Typography>{c.currency}</Typography>
                                         </Stack>
                                     </Stack>
@@ -115,18 +115,15 @@ export default function BuyStock() {
 
             <Divider sx={{ my: 2, mb:3 }} />
 
-            <Grid2 container spacing={1.5} alignContent={"center"}>
-                {AllStocksQuery.isLoading && <Typography>Loading...</Typography>}
-                <Grid2 xs={12} sm={2} md={3} lg={3}>
-                    <Button variant="outlined" color="success" onClick={() => AllStocksQuery.refetch()} 
-                    fullWidth>
+            <Grid2 container spacing={1.5}>
+                <Grid2 xs={12} sm={2} md={3} lg={3} alignContent={"center"} alignItems={"center"} justifyContent={"center"} justifyItems={"center"}>
+                    <Button variant="outlined" color="success" onClick={() => AllStocksQuery.refetch()} fullWidth sx={{height:"min"}}>
                         Refresh
                     </Button>
                 </Grid2>
 
                 <Grid2 xs={12} sm={2} md={3} lg={3}>
-                    <Button variant="outlined" color="warning" onClick={() => setBasket({})} 
-                    fullWidth>
+                    <Button variant="outlined" color="warning" onClick={() => setBasket({})} fullWidth>
                         Clear
                     </Button>
                 </Grid2>
@@ -143,8 +140,8 @@ export default function BuyStock() {
                 {AllStocksQuery.isSuccess && stocks?.map((stock, idx) => {
                     return (
                         <Grid2 key={idx} maxWidth={"xs"} xs={12} sm={6} md={3}>
-                            <Paper sx={{p:1.5, height:"100%", alignContent:"space-between"}}>
-                                <Stack direction={"row"} justifyContent={"space-between"}>
+                            <Paper sx={{p:1.5, height:"100%", display:"flex", flexDirection:"column", justifyContent:"space-between"}}>
+                                <Stack direction={"row"} justifyContent={"space-between"} flexGrow={"initial"}>
 
                                     <Chip label={stock?.ticker} size="small" color="primary" variant="outlined" />
                                     <Typography variant="body2">{stock?.name}</Typography>
@@ -154,16 +151,15 @@ export default function BuyStock() {
 
                                 {/* <Typography variant="caption">{stock?.description}</Typography> */}
 
-                                <Stack direction={"row"} justifyContent={"space-between"} sx={{pt:1}}>
+                                <Stack direction={"row"} gap={1} mt={1}>
                                     <Typography variant="caption">Total</Typography>
                                     <Typography variant="caption">
                                         {basket[stock?.ticker]?.amount ? (basket[stock?.ticker]?.amount * stock?.price).toLocaleString() : "0"}$
                                     </Typography>
                                 </Stack>
 
-                                <Stack direction={"row"} sx={{mt:1}}>
-                                    <Button variant="outlined" color="success" sx={{
-                                    }}
+                                <Stack direction={"row"} mt={1}>
+                                    <Button variant="outlined" color="success" sx={{minWidth: "min-content", mr: 1}}
                                         onClick={() => {
                                             if (basket[stock?.ticker]) {
                                                 setBasket({...basket,[stock?.ticker]: {...basket[stock?.ticker],amount: basket[stock?.ticker].amount + 1}
@@ -199,7 +195,7 @@ export default function BuyStock() {
                                     />
 
                                     
-                                    <Button variant="outlined" color="error"
+                                    <Button variant="outlined" color="error" sx={{minWidth: "min-content", ml: 1}}
                                         disabled={basket[stock?.ticker]?.amount === 0}
                                         onClick={() => {
                                             if (basket[stock?.ticker]) {
@@ -217,6 +213,7 @@ export default function BuyStock() {
                                         -
                                     </Button>
                                 </Stack>
+
                             </Paper>
                         </Grid2>
                     )
@@ -243,9 +240,7 @@ export default function BuyStock() {
                         )
                     })}
                 </Grid2>
-                <Button variant="outlined" color="success" fullWidth
-                    onClick={handleBuy}
-                >
+                <Button variant="outlined" color="success" fullWidth onClick={handleBuy}>
                     Buy
                 </Button>
             </Box>
