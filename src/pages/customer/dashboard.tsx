@@ -7,7 +7,7 @@ import {
     Typography,
     Divider,
     Box,
-    Tooltip, IconButton
+    Tooltip, IconButton, Paper
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 
@@ -46,7 +46,7 @@ export default function Dashboard() {
     }
 
     return(
-        <Box sx={{mt:3, mx:3}}>
+        <Box sx={{m:3}}>
 
             <Box sx={{mt: 3}}>
                 <Typography variant="h5">Welcome back {UserContext.name}.</Typography>
@@ -62,6 +62,28 @@ export default function Dashboard() {
                 </Box>
 
             </Box>
+
+            <Paper sx={{mt: 3, p:2}} elevation={3}>
+                <Typography>Quick Actions</Typography>
+
+                <Stack direction={"row"} gap={1} sx={{mt:1}}>
+                    <Button variant='outlined' color='secondary' sx={{width:"100%"}} onClick={() => router.push('/sendMoney')}>
+                        Send Money
+                    </Button>
+
+                    <Button variant='outlined' color='secondary' sx={{width:"100%"}} onClick={() => router.push('/stocks/buy')}>
+                        Buy Stocks
+                    </Button>
+
+                    <Button variant='outlined' color='secondary' sx={{width:"100%"}} onClick={() => router.push('')}>
+                        Action
+                    </Button>
+
+                    <Button variant='outlined' color='secondary' sx={{width:"100%"}} onClick={() => router.push('')}>
+                        Action
+                    </Button>
+                </Stack>
+            </Paper>
 
             <Divider sx={{my: 3}}/>
 

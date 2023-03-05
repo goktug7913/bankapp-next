@@ -1,6 +1,6 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
+/* * {
     outline: rgba(255, 0, 0, 0.34) 1px solid;
-}
+} */
