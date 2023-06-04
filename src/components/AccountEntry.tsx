@@ -8,10 +8,22 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import React, {useEffect, useState} from "react";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import {ICryptoAccount, IFiatAccount} from "@/model/UserModels"; // TODO: We have Prisma, get rid of this
-import useMediaQuery from "@mui/material/useMediaQuery";
 import {trpc} from "@/utils/trpc";
 import {useRouter} from "next/router";
 import TxDetailsModal from "@/components/TxDetailsModal";
+
+const parseDate = (date: any) => {
+    const d = new Date(date);
+    const opt = {
+        year: "2-digit",
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+    } as Intl.DateTimeFormatOptions;
+    const locale = navigator.language; // Find user's locale
+    return d.toLocaleString(locale, opt);
+}
 
 export interface AccountEntryProps {
     m_id: string
@@ -34,9 +46,10 @@ export const AccountEntry = (props:AccountEntryProps) => {
     const AccountQuery = trpc.getSubAccount.useQuery({ _id: props.m_id, type: props.type}, {
         enabled: props.m_id !== "",
         onSuccess: (data) => {
+            if (!data?.account) { return; }
             // Order transactions by date
             // We might be able to do this in the backend, but the way we query the data is a bit weird
-            data.account?.transactions?.sort((a, b) => {
+            data?.account?.transactions?.sort((a, b) => {
                 return new Date(b.date).getTime() - new Date(a.date).getTime();
             });
             setAccState(data.account)
@@ -90,22 +103,11 @@ export const AccountEntry = (props:AccountEntryProps) => {
 
     const handleHistoryRequest = () => { alert("History request not implemented yet") }
 
-    const parseDate = (date: any) => {
-        const d = new Date(date);
-        const opt = {
-            year: "2-digit",
-            month: 'numeric',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-        } as Intl.DateTimeFormatOptions;
-        const locale = navigator.language; // Find user's locale
-        return d.toLocaleString(locale, opt);
-    }
+
 
     const CalculateTransactionPages = () => {
         // 10 transactions per page
-        if (!accState?.transactions?.length) return 0; // TS complains about undefined
+        if (!accState?.transactions?.length) return 0;
         return Math.ceil(accState?.transactions?.length / 10);
     }
 
@@ -126,8 +128,6 @@ export const AccountEntry = (props:AccountEntryProps) => {
         setModalOpen(false);
     }
 
-    const largeScreen = useMediaQuery((theme: { breakpoints: { up: (arg0: string) => any; }; }) => theme.breakpoints.up('md'));
-
     return (
         <Accordion TransitionProps={{ unmountOnExit: true }}>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>} sx={{ml:0,pl:0}}>
@@ -146,7 +146,7 @@ export const AccountEntry = (props:AccountEntryProps) => {
                                 ≈{PrefferedCurrencyMutation?.data?.amount + "$"}
                             </Typography>}
                             <Typography>
-                                {accState?.balance + " " + accState?.currency}
+                                {accState?.balance.toFixed(2) + " " + accState?.currency}
                             </Typography>
                         </Stack>}
 

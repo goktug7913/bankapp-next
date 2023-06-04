@@ -3,7 +3,7 @@ import {procedure, router} from '../trpc';
 import * as process from "process";
 import {OperationType, StockTransactionType} from "@prisma/client"; // TODO: Check the enum export bug!
 import {TRPCError} from "@trpc/server";
-import { randomUUID } from 'crypto'; // I guess we're using crypto now. 🤷‍♂️
+import {randomUUID} from 'crypto'; // I guess we're using crypto now. 🤷‍♂️
 
 interface CoinAPIResponse {
     time: string;
@@ -1021,9 +1021,8 @@ export const appRouter = router({
         .query( async ({ ctx }) => {
             const {prisma} = ctx;
 
-            const stocks = await prisma.stocks.findMany();
             // Could do other stuff here, like sorting the stocks by price or something.
-            return stocks;
+            return await prisma.stocks.findMany();
         }),
 
         // <-- Procedures (Janky tooltip comment)

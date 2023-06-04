@@ -25,6 +25,7 @@ export default function BuyStock() {
 
     const Accounts = trpc.getSubAccounts.useQuery({ type: "all" }, {
         onSuccess: (data) => {
+            if (!data) { throw new Error("No accounts found") }
             setSelectedAccount(data.accounts[0]);
         }
     });

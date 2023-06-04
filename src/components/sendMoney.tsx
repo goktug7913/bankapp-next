@@ -21,6 +21,7 @@ export default function SendMoney( {sender_account}: IInitialProps) {
     const Accounts = trpc.getSubAccounts.useQuery({ type: "all" },
         {
             onSuccess: (data) => {
+                if (!data) throw new Error("No data");
                 // Let's find the account we want to pre-select
                 if (sender_account) {
                     const account = data.accounts.find((a: any) => a.account_id === sender_account);
